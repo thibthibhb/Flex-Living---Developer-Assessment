@@ -303,15 +303,15 @@ export default async function Dashboard({
   const { filters, reviews, k30, k90, trend30, trend90, topCategories } =
     await getData(sp);
 
-  function HiddenParams({ keep }: { keep: Record<string, string | string[] | undefined> }) {
-    const entries: [string, string | string[] | undefined][] = Object.entries(keep);
+  function HiddenParams({ keep }: { keep: Record<string, string | string[] | number | undefined> }) {
+    const entries: [string, string | string[] | number | undefined][] = Object.entries(keep);
     return (
       <>
         {entries.map(([k, v]) =>
           Array.isArray(v)
-            ? v.map((vv) => <input key={`${k}-${vv}`} type="hidden" name={k} value={vv} />)
+            ? v.map((vv) => <input key={`${k}-${vv}`} type="hidden" name={k} value={String(vv)} />)
             : v != null
-            ? <input key={k} type="hidden" name={k} value={v} />
+            ? <input key={k} type="hidden" name={k} value={String(v)} />
             : null
         )}
       </>
