@@ -53,7 +53,7 @@ export default async function PropertyPage({
     orderBy: { name: 'asc' },
   });
 
-  // Fetch the current property by slug with Google cache fields
+  // Fetch the current property by slug with Google fields
   const property = await prisma.property.findUnique({ 
     where: { slug },
     select: {
@@ -61,9 +61,6 @@ export default async function PropertyPage({
       name: true,
       slug: true,
       googlePlaceId: true,
-      googleRatingCached: true,
-      googleRatingsCountCached: true,
-      googleUrlCached: true,
     },
   });
 
