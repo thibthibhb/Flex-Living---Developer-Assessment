@@ -1,18 +1,29 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 
 type Property = {
   id: number;
   name: string;
   slug: string;
+  approvedCount?: number;
 };
 
 type Props = {
   properties: Property[];
   currentPath?: string;
+  maxVisible?: number;
 };
 
-export default function Navigation({ properties, currentPath = "/" }: Props) {
+export default function Navigation({ properties, currentPath = "/", maxVisible = 5 }: Props) {
+  const [showAllProperties, setShowAllProperties] = useState(false);
   const isActive = (path: string) => currentPath === path;
+  
+  const visibleProperties = showAllProperties ? properties : properties.slice(0, maxVisible);
+  const hasMoreProperties = properties.length > maxVisible;
+  
+  const emojis = ['🎨', '🚇', '🎭', '🏢', '🎵', '🏠', '🌟', '✨', '🔥', '⭐'];
   
   return (
     <nav className="navigation-bar" style={{ 
@@ -162,7 +173,7 @@ export default function Navigation({ properties, currentPath = "/" }: Props) {
           flexWrap: 'wrap',
           alignItems: 'center'
         }}>
-          {properties.map((property, index) => (
+          {visibleProperties.map((property, index) => (
             <Link
               key={property.id}
               href={`/properties/${property.slug}`}
@@ -182,11 +193,52 @@ export default function Navigation({ properties, currentPath = "/" }: Props) {
               }}
             >
               <span style={{ opacity: 0.7 }}>
-                {index === 0 ? '🎨' : index === 1 ? '🚇' : index === 2 ? '🎭' : index === 3 ? '🏢' : '🎵'}
+                {emojis[index % emojis.length]}
               </span>
-              {property.name}
+              <span>{property.name}</span>
+              {(property.approvedCount ?? 0) > 0 && (
+                <span style={{
+                  background: 'var(--primary)',
+                  color: 'var(--primary-contrast)',
+                  fontSize: '10px',
+                  fontWeight: '700',
+                  padding: '2px 6px',
+                  borderRadius: '10px',
+                  minWidth: '16px',
+                  textAlign: 'center'
+                }}>
+                  {property.approvedCount}
+                </span>
+              )}
             </Link>
           ))}
+          
+          {hasMoreProperties && (
+            <button
+              onClick={() => setShowAllProperties(!showAllProperties)}
+              style={{
+                background: 'none',
+                border: '1px solid var(--border)',
+                borderRadius: '6px',
+                padding: '6px 12px',
+                fontSize: '12px',
+                color: 'var(--primary)',
+                cursor: 'pointer',
+                fontWeight: '600',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = 'var(--primary)';
+                e.currentTarget.style.color = 'var(--primary-contrast)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = 'none';
+                e.currentTarget.style.color = 'var(--primary)';
+              }}
+            >
+              {showAllProperties ? 'Show less' : `+${properties.length - maxVisible} more`}
+            </button>
+          )}
         </div>
       </div>
     </nav>

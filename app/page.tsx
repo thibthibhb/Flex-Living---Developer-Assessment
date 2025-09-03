@@ -4,7 +4,8 @@ import { prisma } from "../lib/db";
 import ApprovalButton from "./ApprovalButton";
 import Navigation from "./(components)/Navigation";
 import ExpandableText from "./(components)/ExpandableText";
-import { kpisFor, countsByDay } from "../lib/stats"; 
+import CategoryDisplay from "./(components)/CategoryDisplay";
+import { kpisFor, countsByDay, movingAverage, cumulative, bucketCounts } from "../lib/stats"; 
 
 // --- tiny inline sparkline (pure SVG, no client JS needed) ---
 function Sparkline({
@@ -12,29 +13,46 @@ function Sparkline({
   width = 220,
   height = 40,
   label,
+  area = true,
+  zeroBaseline = true,
 }: {
   data: number[];
   width?: number;
   height?: number;
   label?: string;
+  area?: boolean;
+  zeroBaseline?: boolean;
 }) {
   const n = data.length;
-  if (!n) return <svg width={width} height={height} aria-label={label} />;
+  if (n === 0) return <svg width={width} height={height} aria-label={label} />;
 
-  const max = Math.max(...data, 1);
-  const pts = data
-    .map((v, i) => {
-      const x = n === 1 ? width / 2 : (i / (n - 1)) * width;
-      const y = height - (v / max) * height;
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(" ");
+  // Domain with optional zero-baseline
+  const minVal = zeroBaseline ? 0 : Math.min(...data);
+  const maxVal = Math.max(...data, zeroBaseline ? 0 : -Infinity);
+  const range = maxVal - minVal || 1;
+
+  const pts = data.map((v, i) => {
+    const x = n === 1 ? width / 2 : (i / (n - 1)) * width;
+    const y = height - ((v - minVal) / range) * height;
+    return [x, y] as const;
+  });
+
+  const line = "M " + pts.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(" L ");
+
+  // Area path closes to baseline
+  const areaPath = area
+    ? `M 0 ${height} L ${pts
+        .map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`)
+        .join(" L ")} L ${width} ${height} Z`
+    : null;
 
   return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-label={label}>
-      {/* Baseline */}
-      <line x1="0" y1={height} x2={width} y2={height} stroke="currentColor" strokeWidth="1" opacity="0.2" />
-      <polyline points={pts} fill="none" stroke="currentColor" strokeWidth="2" />
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={label}>
+      {label ? <title>{label}</title> : null}
+      {/* subtle baseline */}
+      <line x1="0" y1={height - 0.5} x2={width} y2={height - 0.5} stroke="currentColor" opacity="0.15" />
+      {areaPath ? <path d={areaPath} fill="currentColor" opacity="0.08" /> : null}
+      <path d={line} fill="none" stroke="currentColor" strokeWidth="2" />
     </svg>
   );
 }
@@ -49,7 +67,27 @@ function toArray(q: string | string[] | undefined): string[] {
 }
 
 async function getOptions() {
-  const properties = await prisma.property.findMany({ orderBy: { name: "asc" } });
+  // Fetch properties with their approved review counts
+  const properties = await prisma.property.findMany({ 
+    orderBy: { name: "asc" },
+    include: {
+      reviews: {
+        include: {
+          selection: true
+        }
+      }
+    }
+  });
+
+  // Calculate approved counts for each property
+  const propertiesWithCounts = properties.map(property => ({
+    id: property.id,
+    name: property.name,
+    slug: property.slug,
+    approvedCount: property.reviews.filter(review => 
+      review.selection?.approvedForWebsite === true
+    ).length
+  }));
 
   const catsRaw = await prisma.reviewCategoryRating.findMany({
     select: { category: true },
@@ -61,7 +99,7 @@ async function getOptions() {
     new Set(chansRaw.map((c) => c.channel).filter(Boolean) as string[])
   ).sort();
 
-  return { properties, allCategories, allChannels };
+  return { properties: propertiesWithCounts, allCategories, allChannels };
 }
 
 const fmtDate = (d: Date) =>
@@ -104,6 +142,7 @@ async function getData(searchParams: DashboardSearchParams) {
   const qCategories = toArray(searchParams.categories);
   const qSort =
     typeof searchParams.sort === "string" ? searchParams.sort : "date_desc";
+  const qTrend = typeof searchParams.trend === "string" ? searchParams.trend : "smoothed";
 
   // build filter
   const where: any = {
@@ -194,8 +233,29 @@ async function getData(searchParams: DashboardSearchParams) {
 
   const k30 = kpisFor(last30);
   const k90 = kpisFor(last90);
-  const trend30 = countsByDay(last30, 30);
-  const trend90 = countsByDay(last90, 90);
+  
+  // Base daily counts
+  const daily30 = countsByDay(last30, 30);
+  const daily90 = countsByDay(last90, 90);
+
+  // Transform based on qTrend
+  function transform(series: number[], mode: string): number[] {
+    switch (mode) {
+      case "weekly":
+        return bucketCounts(series, 7);
+      case "cumulative":
+        return cumulative(series);
+      case "raw":
+        return series;
+      case "smoothed":
+      default:
+        // 7d MA; if series shorter than 7, fall back to 3
+        return movingAverage(series, Math.min(7, Math.max(3, series.length)));
+    }
+  }
+
+  const trend30 = transform(daily30, qTrend);
+  const trend90 = transform(daily90, qTrend);
 
   // top categories (90d)
   const catCount = new Map<string, number>();
@@ -221,6 +281,7 @@ async function getData(searchParams: DashboardSearchParams) {
       qCategories,
       qSort,
       qApproved,
+      qTrend,
     },
     reviews,
     k30,
@@ -432,8 +493,31 @@ export default async function Dashboard({
       <section className="col-12 card" style={{ marginBottom: 16 }}>
         <div className="section-title">
           <h2>Trends</h2>
-          <span className="muted">Reviews/day (30d & 90d) • Top categories (90d)</span>
+          <span className="muted">Reviews/day (30d & 90d)</span>
         </div>
+
+        <form method="GET" style={{ marginBottom: 8, display: "flex", gap: 12, alignItems: "center", fontSize: 13, color: "var(--muted)" }}>
+          <span>Mode:</span>
+          <label><input type="radio" name="trend" value="smoothed" defaultChecked={filters.qTrend === "smoothed" || !filters.qTrend} /> Smoothed</label>
+          <label><input type="radio" name="trend" value="weekly"  defaultChecked={filters.qTrend === "weekly"} /> Weekly</label>
+          <label><input type="radio" name="trend" value="cumulative" defaultChecked={filters.qTrend === "cumulative"} /> Cumulative</label>
+          <label><input type="radio" name="trend" value="raw" defaultChecked={filters.qTrend === "raw"} /> Raw</label>
+          {/* keep other filters intact */}
+          <HiddenParams keep={{
+            property: filters.qProperty,
+            minRating: filters.qMinRating?.toString(),
+            maxRating: filters.qMaxRating?.toString(),
+            q: filters.qText,
+            channel: filters.qChannel,
+            status: filters.qStatus,
+            from: filters.qFromStr,
+            to: filters.qToStr,
+            categories: filters.qCategories,
+            sort: filters.qSort,
+            approved: filters.qApproved
+          }} />
+          <button className="btn ghost" type="submit" style={{ padding: "4px 8px" }}>Apply</button>
+        </form>
 
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16 }}>
           <div>
@@ -503,17 +587,29 @@ export default async function Dashboard({
               </colgroup>
 
               <thead>
+                {/* Row 1: Column titles */}
                 <tr>
-                  {/* DATE: two tiny sort buttons; no wrapping */}
-                  <th scope="col">
-                    <div className="th-controls">
-                      <span>Date</span>
-                      <form method="GET" className="th-mini">
+                  <th scope="col">Date</th>
+                  <th scope="col">Property</th>
+                  <th scope="col">Text</th>
+                  <th scope="col">Rating</th>
+                  <th scope="col">Categories</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Approved</th>
+                  <th scope="col">Actions</th>
+                </tr>
+                
+                {/* Row 2: Filters and controls */}
+                <tr style={{ borderTop: '1px solid var(--border)' }}>
+                  {/* DATE: sort buttons */}
+                  <th>
+                    <div className="th-mini">
+                      <form method="GET" style={{ display: 'inline-flex', gap: '2px' }}>
                         <HiddenParams keep={{ ...filters, sort: undefined }} />
                         <input type="hidden" name="sort" value="date_desc" />
                         <button className="icon-btn" aria-label="Sort date new→old"><span>▼</span></button>
                       </form>
-                      <form method="GET" className="th-mini">
+                      <form method="GET" style={{ display: 'inline-flex', gap: '2px' }}>
                         <HiddenParams keep={{ ...filters, sort: undefined }} />
                         <input type="hidden" name="sort" value="date_asc" />
                         <button className="icon-btn" aria-label="Sort date old→new"><span>▲</span></button>
@@ -521,69 +617,94 @@ export default async function Dashboard({
                     </div>
                   </th>
 
-                  <th scope="col">Property</th>
-                  <th scope="col">Text</th>
+                  <th></th>
+                  <th></th>
 
-                  {/* RATING: min/max + tiny sort icons */}
-                  <th scope="col">
-                    <div className="th-controls">
-                      <span>Rating</span>
-                      <form method="GET" className="th-mini">
+                  {/* RATING: range inputs + sort */}
+                  <th>
+                    <div className="th-mini" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <form method="GET" style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                         <HiddenParams keep={{ ...filters, minRating: undefined, maxRating: undefined }} />
-                        <input name="minRating" type="number" step="0.1" min="0" max="10" placeholder="min"
-                               defaultValue={filters.qMinRating ?? ""} />
-                        <input name="maxRating" type="number" step="0.1" min="0" max="10" placeholder="max"
-                               defaultValue={(filters as any).qMaxRating ?? ""} />
-                        <button className="icon-btn" aria-label="Apply rating range"><span>✓</span></button>
+                        <input
+                          name="minRating"
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max="10"
+                          placeholder="min"
+                          style={{ width: '40px', fontSize: '10px' }}
+                          defaultValue={filters.qMinRating ?? ""}
+                        />
+                        <input
+                          name="maxRating"
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max="10"
+                          placeholder="max"
+                          style={{ width: '40px', fontSize: '10px' }}
+                          defaultValue={(filters as any).qMaxRating ?? ""}
+                        />
+                        <button type="submit" className="btn ghost" style={{ padding: '2px 6px', fontSize: '10px' }}>
+                          Apply
+                        </button>
                       </form>
-                      <form method="GET" className="th-mini">
-                        <HiddenParams keep={{ ...filters, sort: undefined }} />
-                        <input type="hidden" name="sort" value="rating_desc" />
-                        <button className="icon-btn" aria-label="Sort rating high→low"><span>▼</span></button>
-                      </form>
-                      <form method="GET" className="th-mini">
-                        <HiddenParams keep={{ ...filters, sort: undefined }} />
-                        <input type="hidden" name="sort" value="rating_asc" />
-                        <button className="icon-btn" aria-label="Sort rating low→high"><span>▲</span></button>
-                      </form>
+                      <div style={{ display: 'flex', gap: '2px' }}>
+                        <form method="GET">
+                          <HiddenParams keep={{ ...filters, sort: undefined }} />
+                          <input type="hidden" name="sort" value="rating_desc" />
+                          <button className="icon-btn" aria-label="Sort rating high→low"><span>▼</span></button>
+                        </form>
+                        <form method="GET">
+                          <HiddenParams keep={{ ...filters, sort: undefined }} />
+                          <input type="hidden" name="sort" value="rating_asc" />
+                          <button className="icon-btn" aria-label="Sort rating low→high"><span>▲</span></button>
+                        </form>
+                      </div>
                     </div>
                   </th>
 
-                  <th scope="col">Categories</th>
+                  <th></th>
 
-                  {/* STATUS: compact select + icon apply */}
-                  <th scope="col">
-                    <div className="th-controls">
-                      <span>Status</span>
-                      <form method="GET" className="th-mini">
-                        <HiddenParams keep={{ ...filters, status: undefined }} />
-                        <select name="status" defaultValue={(filters as any).qStatus ?? "published"}>
-                          <option value="published">Published</option>
-                          <option value="removed">Removed</option>
-                          <option value="all">All</option>
-                        </select>
-                        <button className="icon-btn" aria-label="Apply status filter"><span>✓</span></button>
-                      </form>
-                    </div>
+                  {/* STATUS: select */}
+                  <th>
+                    <form method="GET" className="th-mini" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <HiddenParams keep={{ ...filters, status: undefined }} />
+                      <select
+                        name="status"
+                        defaultValue={(filters as any).qStatus ?? "published"}
+                        style={{ fontSize: '10px' }}
+                      >
+                        <option value="published">Published</option>
+                        <option value="removed">Removed</option>
+                        <option value="all">All</option>
+                      </select>
+                      <button type="submit" className="btn ghost" style={{ padding: '2px 6px', fontSize: '10px' }}>
+                        Apply
+                      </button>
+                    </form>
                   </th>
 
-                  {/* APPROVED: compact select + icon apply */}
-                  <th scope="col">
-                    <div className="th-controls">
-                      <span>Approved</span>
-                      <form method="GET" className="th-mini">
-                        <HiddenParams keep={{ ...filters, approved: undefined }} />
-                        <select name="approved" defaultValue={(filters as any).qApproved ?? "all"}>
-                          <option value="all">All</option>
-                          <option value="true">Yes</option>
-                          <option value="false">No</option>
-                        </select>
-                        <button className="icon-btn" aria-label="Apply approved filter"><span>✓</span></button>
-                      </form>
-                    </div>
+                  {/* APPROVED: select */}
+                  <th>
+                    <form method="GET" className="th-mini" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <HiddenParams keep={{ ...filters, approved: undefined }} />
+                      <select
+                        name="approved"
+                        defaultValue={(filters as any).qApproved ?? "all"}
+                        style={{ fontSize: '10px' }}
+                      >
+                        <option value="all">All</option>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                      </select>
+                      <button type="submit" className="btn ghost" style={{ padding: '2px 6px', fontSize: '10px' }}>
+                        Apply
+                      </button>
+                    </form>
                   </th>
 
-                  <th scope="col">Actions</th>
+                  <th></th>
                 </tr>
               </thead>
 
@@ -603,9 +724,7 @@ export default async function Dashboard({
                       </td>
                       <td className={ratingClass}>{r.ratingOverall ?? "—"}</td>
                       <td>
-                        {r.categories.slice(0, 3).map((c: any) => (
-                          <span key={c.id} className="badge">{c.category}:{c.rating}</span>
-                        ))}
+                        <CategoryDisplay categories={r.categories} maxVisible={3} />
                       </td>
                       <td>
                         {r.status === "published" ? (

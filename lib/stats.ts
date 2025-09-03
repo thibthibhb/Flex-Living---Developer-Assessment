@@ -57,3 +57,35 @@ export function countsByDay(
 
   return keys.map((k) => map.get(k) || 0);
 }
+
+export function movingAverage(arr: number[], window = 7): number[] {
+  if (arr.length === 0) return [];
+  if (window <= 1) return arr.slice();
+  const out: number[] = [];
+  let sum = 0;
+  const q: number[] = [];
+  for (const v of arr) {
+    q.push(v);
+    sum += v;
+    if (q.length > window) sum -= q.shift()!;
+    out.push(sum / q.length);
+  }
+  return out;
+}
+
+export function cumulative(arr: number[]): number[] {
+  let running = 0;
+  return arr.map(v => (running += v));
+}
+
+/** Group sequential values into fixed-size buckets and sum each bucket */
+export function bucketCounts(arr: number[], size = 7): number[] {
+  if (size <= 1) return arr.slice();
+  const out: number[] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    let sum = 0;
+    for (let j = i; j < Math.min(i + size, arr.length); j++) sum += arr[j];
+    out.push(sum);
+  }
+  return out;
+}
