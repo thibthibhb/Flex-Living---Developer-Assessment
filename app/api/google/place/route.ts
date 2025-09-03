@@ -1,6 +1,6 @@
 // app/api/google/place/route.ts
 import { NextResponse } from "next/server"
-import { fetchGoogleSummaryAndReviews } from "@/lib/google"
+import { fetchGoogleSummaryAndReviews } from "../../../../lib/google"
 
 export const runtime = "nodejs"
 
