@@ -13,11 +13,18 @@ model Property {
   id            Int       @id @default(autoincrement())
   name          String    @unique
   hostawayName  String?
-  googlePlaceId String?
   slug          String    @unique
   reviews       Review[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  // Google metadata (do NOT store Google review text in DB)
+  googlePlaceId            String?  @db.VarChar(255)
+  googleRatingCached       Float?
+  googleRatingsCountCached Int?
+  googleUrlCached          String?
+
+  @@index([googlePlaceId])
 }
 
 model Review {
