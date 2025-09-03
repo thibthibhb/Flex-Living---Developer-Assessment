@@ -101,18 +101,49 @@ export default async function AnalyticsPage() {
       </header>
 
       {/* Analytics Dashboard */}
-      {analytics.length > 0 ? (
-        <AnalyticsDashboard analytics={analytics} allReviews={allReviews} />
-      ) : (
-        <section className="col-12 card" style={{ textAlign: 'center', padding: '48px 24px' }}>
-          <h2 style={{ color: 'var(--muted)', margin: '0 0 16px 0', fontWeight: '500' }}>
-            No analytics data available
-          </h2>
-          <p style={{ color: 'var(--muted)', margin: 0 }}>
-            Analytics data will appear here once reviews are available and processed.
-          </p>
-        </section>
-      )}
+      <section className="col-12 card">
+        <h2 style={{ marginTop: 0, marginBottom: 16 }}>Property Analytics Overview</h2>
+        {analytics.length > 0 ? (
+          <div>
+            <p>Found {analytics.length} properties with analytics data:</p>
+            <div style={{ display: 'grid', gap: '16px', marginTop: '24px' }}>
+              {analytics.map(property => (
+                <div key={property.id} style={{ 
+                  padding: '16px', 
+                  border: '1px solid var(--border)', 
+                  borderRadius: '8px',
+                  background: 'var(--bg)'
+                }}>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>{property.name}</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px', fontSize: '14px' }}>
+                    <div>
+                      <strong>Reviews:</strong> {property.totalReviews}
+                    </div>
+                    <div>
+                      <strong>Avg Rating:</strong> {property.avgRating?.toFixed(1) || 'N/A'}
+                    </div>
+                    <div>
+                      <strong>Approved:</strong> {property.approvedCount} ({property.approvalRate}%)
+                    </div>
+                    <div>
+                      <strong>Last 30 Days:</strong> {property.last30Days.reviews} reviews
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '24px 0' }}>
+            <p style={{ color: 'var(--muted)', margin: 0 }}>
+              No analytics data available. Analytics will show once review data is processed.
+            </p>
+            <p style={{ color: 'var(--muted)', margin: '8px 0 0 0', fontSize: '14px' }}>
+              Debug: {allReviews.length} total reviews found
+            </p>
+          </div>
+        )}
+      </section>
 
       {/* Quick Actions */}
       <section className="col-12 card">
