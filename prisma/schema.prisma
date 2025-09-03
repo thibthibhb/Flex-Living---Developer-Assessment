@@ -42,6 +42,8 @@ model Review {
   @@index([submittedAt])
   @@index([propertyId, submittedAt])
   @@index([channel])
+  @@index([status])
+  @@index([ratingOverall])
 }
 
 model ReviewCategoryRating {

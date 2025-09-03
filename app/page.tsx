@@ -1,5 +1,6 @@
 // app/page.tsx
 export const runtime = "nodejs";
+export const revalidate = 60; // Cache for 1 minute
 
 import Link from "next/link";
 import { prisma } from "../lib/db";
@@ -185,7 +186,7 @@ async function getData(searchParams: DashboardSearchParams) {
     where,
     include: { property: true, selection: true, categories: true },
     orderBy,
-    take: 300,
+    take: 100, // Reduced from 300 for better performance
   });
   // Re-sort by EFFECTIVE rating (ratingOverall or avg(categories)) in-memory.
   if (qSort === "rating_desc" || qSort === "rating_asc" || qSort === "attention") {
