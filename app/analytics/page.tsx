@@ -1,3 +1,6 @@
+export const runtime = "nodejs";
+export const revalidate = 300; // Cache for 5 minutes
+
 // app/analytics/page.tsx
 // Dedicated analytics dashboard page
 
@@ -7,26 +10,60 @@ import AnalyticsDashboard from "../(components)/AnalyticsDashboard";
 import RefreshButton from "../(components)/RefreshButton";
 import Navigation from "../(components)/Navigation";
 
-// Fetch analytics data server-side
+// Fetch analytics data server-side directly from database
 async function getAnalyticsData() {
   try {
-    // Use internal API call for consistency
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3004';
-    const analyticsResponse = await fetch(`${baseUrl}/api/analytics/property-comparison`, {
-      cache: 'no-store'
-    });
-    
-    let analytics = [];
-    if (analyticsResponse.ok) {
-      const data = await analyticsResponse.json();
-      analytics = data.data || [];
-    }
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    // Get all reviews for issue detection
+    // Fetch properties with optimized queries
+    const properties = await prisma.property.findMany({
+      include: {
+        reviews: {
+          include: {
+            categories: true,
+            selection: true,
+          },
+          orderBy: { submittedAt: 'desc' }
+        }
+      }
+    });
+
+    const analytics = properties.map(property => {
+      const reviews = property.reviews;
+      const approvedReviews = reviews.filter(r => r.selection?.approvedForWebsite);
+      const recent30Days = reviews.filter(r => new Date(r.submittedAt) >= thirtyDaysAgo);
+
+      // Calculate average rating
+      const ratingsWithValues = reviews
+        .map(r => r.ratingOverall || (r.categories?.length > 0 
+          ? r.categories.reduce((sum, cat) => sum + (cat.rating || 0), 0) / r.categories.length 
+          : null))
+        .filter(r => r !== null) as number[];
+      const avgRating = ratingsWithValues.length > 0 
+        ? ratingsWithValues.reduce((sum, rating) => sum + rating, 0) / ratingsWithValues.length 
+        : null;
+
+      return {
+        id: property.id,
+        name: property.name,
+        slug: property.slug,
+        totalReviews: reviews.length,
+        avgRating: avgRating ? Math.round(avgRating * 10) / 10 : null,
+        approvedCount: approvedReviews.length,
+        approvalRate: reviews.length > 0 ? Math.round((approvedReviews.length / reviews.length) * 100) : 0,
+        last30Days: {
+          reviews: recent30Days.length,
+          avgRating: recent30Days.length > 0 ? Math.round(avgRating! * 10) / 10 : null
+        }
+      };
+    }).sort((a, b) => b.totalReviews - a.totalReviews);
+
+    // Get recent reviews for display
     const allReviews = await prisma.review.findMany({
-      include: { categories: true, selection: true },
+      include: { categories: true, selection: true, property: true },
       orderBy: { submittedAt: 'desc' },
-      take: 500 // Limit for performance
+      take: 50 // Reduced for performance
     });
 
     return { analytics, allReviews };
@@ -84,9 +121,9 @@ export default async function AnalyticsPage() {
           <Link href="/" className="btn ghost">
             Review Dashboard
           </Link>
-          <Link href="/api/analytics/property-comparison" className="btn ghost">
-            Export Data (JSON)
-          </Link>
+          <button className="btn ghost" disabled>
+            Export Data (Coming Soon)
+          </button>
           <RefreshButton />
         </div>
       </section>
