@@ -1,0 +1,554 @@
+{
+  "status": "success",
+  "result": [
+    {
+      "id": 7453,
+      "type": "host-to-guest",
+      "status": "published",
+      "rating": null,
+      "publicReview": "Shane and family are wonderful! Would definitely host again :)",
+      "reviewCategory": [
+        { "category": "cleanliness", "rating": 10 },
+        { "category": "communication", "rating": 10 },
+        { "category": "respect_house_rules", "rating": 10 }
+      ],
+      "submittedAt": "2020-08-21 22:45:14",
+      "guestName": "Shane Finkelstein",
+      "listingName": "2B N1 A - 29 Shoreditch Heights"
+    },
+    {
+      "id": 7454,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 9.0,
+      "publicReview": "Great stay, super clean and close to the tube. Check-in was smooth.",
+      "reviewCategory": [
+        { "category": "cleanliness", "rating": 9 },
+        { "category": "communication", "rating": 10 },
+        { "category": "location", "rating": 9 }
+      ],
+      "submittedAt": "2021-03-11 14:12:00",
+      "guestName": "Alice Johnson",
+      "listingName": "2B N1 A - 29 Shoreditch Heights"
+    },
+    {
+      "id": 7455,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 7.5,
+      "publicReview": "Nice flat but a bit noisy on Friday nights.",
+      "reviewCategory": [
+        { "category": "cleanliness", "rating": 8 },
+        { "category": "communication", "rating": 9 },
+        { "category": "noise", "rating": 6 }
+      ],
+      "submittedAt": "2021-05-09 09:30:00",
+      "guestName": "Bob Smith",
+      "listingName": "Baker Street Apartment 12B"
+    },
+    {
+      "id": 8901,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 9.5,
+      "publicReview": "Absolutely stunning property! 🏠✨ The Covent Garden location is unbeatable - walked to all the theaters and restaurants. Host was incredibly responsive and the apartment exceeded all expectations. Will definitely book again!",
+      "reviewCategory": [
+        { "category": "cleanliness", "rating": 10 },
+        { "category": "communication", "rating": 10 },
+        { "category": "location", "rating": 10 },
+        { "category": "check_in", "rating": 9 },
+        { "category": "value", "rating": 9 }
+      ],
+      "submittedAt": "2025-09-02 16:30:22",
+      "guestName": "Emma Thompson",
+      "listingName": "Covent Garden Studio Loft"
+    },
+    {
+      "id": 8902,
+      "type": "host-to-guest",
+      "status": "published",
+      "rating": null,
+      "publicReview": "Perfect guests! Left the place spotless 🧹",
+      "reviewCategory": [
+        { "category": "cleanliness", "rating": 10 },
+        { "category": "communication", "rating": 9 },
+        { "category": "respect_house_rules", "rating": 10 }
+      ],
+      "submittedAt": "2025-09-01 11:15:08",
+      "guestName": "Marcus Chen",
+      "listingName": "Canary Wharf Executive Suite 45F"
+    },
+    {
+      "id": 8903,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 6.5,
+      "publicReview": "The location was good but the apartment needs some maintenance. Shower pressure was quite low and the Wi-Fi kept cutting out during important work calls. Host was responsive though.",
+      "reviewCategory": [
+        { "category": "location", "rating": 8 },
+        { "category": "communication", "rating": 8 },
+        { "category": "accuracy", "rating": 6 },
+        { "category": "value", "rating": 6 }
+      ],
+      "submittedAt": "2025-08-31 09:42:11",
+      "guestName": "Sarah Williams",
+      "listingName": "Camden Market Townhouse 3BR"
+    },
+    {
+      "id": 8904,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 8.5,
+      "publicReview": "Très belle appartement! The Camden location is fantastic - so much character and energy. Perfect for exploring London's music scene 🎵",
+      "reviewCategory": [
+        { "category": "location", "rating": 9 },
+        { "category": "cleanliness", "rating": 8 },
+        { "category": "check_in", "rating": 9 },
+        { "category": "communication", "rating": 8 }
+      ],
+      "submittedAt": "2025-08-29 20:18:44",
+      "guestName": "Pierre Dubois",
+      "listingName": "Camden Market Townhouse 3BR"
+    },
+    {
+      "id": 8905,
+      "type": "host-to-guest",
+      "status": "published",
+      "rating": null,
+      "publicReview": "Wonderful family - kids were so well behaved! Hope you enjoyed London 😊",
+      "reviewCategory": [
+        { "category": "communication", "rating": 10 },
+        { "category": "respect_house_rules", "rating": 10 },
+        { "category": "cleanliness", "rating": 9 }
+      ],
+      "submittedAt": "2025-08-28 14:25:33",
+      "guestName": "Rodriguez Family",
+      "listingName": "Baker Street Apartment 12B"
+    },
+    {
+      "id": 8906,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 10.0,
+      "publicReview": "Perfect business trip accommodation! The Canary Wharf location is ideal for financial district meetings. Apartment has everything needed - fast WiFi, quiet workspace, excellent shower. Five stars! ⭐⭐⭐⭐⭐",
+      "reviewCategory": [
+        { "category": "location", "rating": 10 },
+        { "category": "cleanliness", "rating": 10 },
+        { "category": "communication", "rating": 10 },
+        { "category": "check_in", "rating": 10 },
+        { "category": "accuracy", "rating": 10 },
+        { "category": "value", "rating": 9 }
+      ],
+      "submittedAt": "2025-08-26 08:12:17",
+      "guestName": "David Liu",
+      "listingName": "Canary Wharf Executive Suite 45F"
+    },
+    {
+      "id": 8907,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": null,
+      "publicReview": "",
+      "reviewCategory": [
+        { "category": "cleanliness", "rating": 7 },
+        { "category": "location", "rating": 8 },
+        { "category": "value", "rating": 7 }
+      ],
+      "submittedAt": "2025-08-24 19:45:12",
+      "guestName": "Anonymous Guest",
+      "listingName": "2B N1 A - 29 Shoreditch Heights"
+    },
+    {
+      "id": 8908,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 8.0,
+      "publicReview": "Great spot for a weekend in London! Walking distance to Borough Market and London Bridge. Apartment was clean and well-equipped. Only minor issue was street noise on Saturday night but not a big deal.",
+      "reviewCategory": [
+        { "category": "location", "rating": 9 },
+        { "category": "cleanliness", "rating": 8 },
+        { "category": "noise", "rating": 7 },
+        { "category": "check_in", "rating": 8 },
+        { "category": "value", "rating": 8 }
+      ],
+      "submittedAt": "2025-08-22 16:33:28",
+      "guestName": "Jennifer Moore",
+      "listingName": "2B N1 A - 29 Shoreditch Heights"
+    },
+    {
+      "id": 8909,
+      "type": "host-to-guest",
+      "status": "published",
+      "rating": null,
+      "publicReview": "Great communication throughout the stay. Thank you for being so considerate of our neighbors! 🏠",
+      "reviewCategory": [
+        { "category": "communication", "rating": 9 },
+        { "category": "respect_house_rules", "rating": 10 },
+        { "category": "cleanliness", "rating": 8 }
+      ],
+      "submittedAt": "2025-08-20 12:07:54",
+      "guestName": "Michael O'Connor",
+      "listingName": "Covent Garden Studio Loft"
+    },
+    {
+      "id": 8910,
+      "type": "guest-to-host",
+      "status": "removed",
+      "rating": 4.0,
+      "publicReview": "Had some issues with the heating system and check-in process was confusing. Not what was advertised.",
+      "reviewCategory": [
+        { "category": "accuracy", "rating": 4 },
+        { "category": "check_in", "rating": 3 },
+        { "category": "communication", "rating": 5 }
+      ],
+      "submittedAt": "2025-08-18 22:15:41",
+      "guestName": "Unsatisfied Guest",
+      "listingName": "Camden Market Townhouse 3BR"
+    },
+    {
+      "id": 8911,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 9.2,
+      "publicReview": "Fantastisk lägenhet i hjärtat av London! 🇸🇪 The Covent Garden area is absolutely magical. Everything was exactly as described and the host provided excellent local recommendations. Highly recommended for anyone visiting London!",
+      "reviewCategory": [
+        { "category": "location", "rating": 10 },
+        { "category": "accuracy", "rating": 9 },
+        { "category": "communication", "rating": 10 },
+        { "category": "cleanliness", "rating": 9 },
+        { "category": "value", "rating": 9 }
+      ],
+      "submittedAt": "2025-08-15 14:52:06",
+      "guestName": "Lars Andersson",
+      "listingName": "Covent Garden Studio Loft"
+    },
+    {
+      "id": 8912,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 7.8,
+      "publicReview": "Decent place for the price. Baker Street location is convenient for the tube. Apartment could use some updating but served our needs for a short stay.",
+      "reviewCategory": [
+        { "category": "location", "rating": 9 },
+        { "category": "value", "rating": 8 },
+        { "category": "accuracy", "rating": 7 },
+        { "category": "cleanliness", "rating": 7 }
+      ],
+      "submittedAt": "2025-08-12 10:28:19",
+      "guestName": "Robert Thompson",
+      "listingName": "Baker Street Apartment 12B"
+    },
+    {
+      "id": 8913,
+      "type": "host-to-guest",
+      "status": "published",
+      "rating": null,
+      "publicReview": "Lovely couple from Australia! They were so respectful and left everything perfect. Welcome back anytime! 🇦🇺",
+      "reviewCategory": [
+        { "category": "cleanliness", "rating": 10 },
+        { "category": "communication", "rating": 10 },
+        { "category": "respect_house_rules", "rating": 10 }
+      ],
+      "submittedAt": "2025-08-10 18:43:27",
+      "guestName": "Sophie & James Wilson",
+      "listingName": "Canary Wharf Executive Suite 45F"
+    },
+    {
+      "id": 8914,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 8.7,
+      "publicReview": "Excellent location for business travel. The executive suite lives up to its name - very professional setup with great workspace and meeting area. Building security was top-notch. Minor points deducted for expensive parking.",
+      "reviewCategory": [
+        { "category": "location", "rating": 10 },
+        { "category": "accuracy", "rating": 9 },
+        { "category": "cleanliness", "rating": 9 },
+        { "category": "check_in", "rating": 8 },
+        { "category": "value", "rating": 7 }
+      ],
+      "submittedAt": "2025-08-08 07:15:33",
+      "guestName": "Amanda Foster",
+      "listingName": "Canary Wharf Executive Suite 45F"
+    },
+    {
+      "id": 8915,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 6.8,
+      "publicReview": "Location was great for exploring Camden's nightlife and markets. However, the apartment was quite noisy due to street-facing windows and late-night activity. Also had issues with hot water on the second day.",
+      "reviewCategory": [
+        { "category": "location", "rating": 9 },
+        { "category": "noise", "rating": 5 },
+        { "category": "accuracy", "rating": 6 },
+        { "category": "communication", "rating": 8 }
+      ],
+      "submittedAt": "2025-08-05 21:38:14",
+      "guestName": "Jake Martinez",
+      "listingName": "Camden Market Townhouse 3BR"
+    },
+    {
+      "id": 8916,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": null,
+      "publicReview": "Perfect for our family holiday! 👨‍👩‍👧‍👦",
+      "reviewCategory": [
+        { "category": "cleanliness", "rating": 9 },
+        { "category": "location", "rating": 8 },
+        { "category": "accuracy", "rating": 9 },
+        { "category": "value", "rating": 8 }
+      ],
+      "submittedAt": "2025-08-02 13:22:41",
+      "guestName": "The Kim Family",
+      "listingName": "Camden Market Townhouse 3BR"
+    },
+    {
+      "id": 8917,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 9.1,
+      "publicReview": "Wunderbare Unterkunft! The Shoreditch area is so vibrant and creative. Loved being able to walk to all the galleries and street art. Apartment was spotless and had everything we needed. Danke for a great stay! 🎨",
+      "reviewCategory": [
+        { "category": "location", "rating": 10 },
+        { "category": "cleanliness", "rating": 9 },
+        { "category": "accuracy", "rating": 9 },
+        { "category": "communication", "rating": 9 },
+        { "category": "value", "rating": 9 }
+      ],
+      "submittedAt": "2025-07-28 16:45:52",
+      "guestName": "Greta Müller",
+      "listingName": "2B N1 A - 29 Shoreditch Heights"
+    },
+    {
+      "id": 8918,
+      "type": "host-to-guest",
+      "status": "published",
+      "rating": null,
+      "publicReview": "Fantastic business travelers - very professional and considerate. Hope your London meetings went well! 💼",
+      "reviewCategory": [
+        { "category": "communication", "rating": 10 },
+        { "category": "respect_house_rules", "rating": 9 },
+        { "category": "cleanliness", "rating": 9 }
+      ],
+      "submittedAt": "2025-07-25 09:17:28",
+      "guestName": "Corporate Group",
+      "listingName": "Canary Wharf Executive Suite 45F"
+    },
+    {
+      "id": 8919,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 8.3,
+      "publicReview": "Great value for money in central London! The studio layout was clever and made good use of the space. Covent Garden location can't be beat - walked everywhere. Only complaint was thin walls - could hear neighbors occasionally.",
+      "reviewCategory": [
+        { "category": "location", "rating": 10 },
+        { "category": "value", "rating": 9 },
+        { "category": "accuracy", "rating": 8 },
+        { "category": "noise", "rating": 6 },
+        { "category": "cleanliness", "rating": 8 }
+      ],
+      "submittedAt": "2025-07-22 11:33:17",
+      "guestName": "Maria Gonzalez",
+      "listingName": "Covent Garden Studio Loft"
+    },
+    {
+      "id": 8920,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 7.2,
+      "publicReview": "Baker Street is a classic London address! The apartment has character but showing its age. Heating was inconsistent and bathroom could use renovation. Host was helpful with local recommendations though.",
+      "reviewCategory": [
+        { "category": "location", "rating": 8 },
+        { "category": "accuracy", "rating": 6 },
+        { "category": "communication", "rating": 8 },
+        { "category": "value", "rating": 7 }
+      ],
+      "submittedAt": "2025-07-18 14:56:03",
+      "guestName": "Helen Clark",
+      "listingName": "Baker Street Apartment 12B"
+    },
+    {
+      "id": 8921,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 9.8,
+      "publicReview": "Absolutely incredible stay! 🌟 This is exactly what London hospitality should be. From the moment we arrived, everything was perfect. The Covent Garden location is magical - felt like we were living in a movie. Thank you for an unforgettable experience!",
+      "reviewCategory": [
+        { "category": "location", "rating": 10 },
+        { "category": "cleanliness", "rating": 10 },
+        { "category": "communication", "rating": 10 },
+        { "category": "accuracy", "rating": 10 },
+        { "category": "check_in", "rating": 10 },
+        { "category": "value", "rating": 9 }
+      ],
+      "submittedAt": "2025-07-15 19:24:39",
+      "guestName": "Isabella Romano",
+      "listingName": "Covent Garden Studio Loft"
+    },
+    {
+      "id": 8922,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": null,
+      "publicReview": "Good location, basic amenities.",
+      "reviewCategory": [
+        { "category": "location", "rating": 8 },
+        { "category": "accuracy", "rating": 7 },
+        { "category": "cleanliness", "rating": 7 }
+      ],
+      "submittedAt": "2025-07-12 08:41:26",
+      "guestName": "Tom Brown",
+      "listingName": "Camden Market Townhouse 3BR"
+    },
+    {
+      "id": 8923,
+      "type": "host-to-guest",
+      "status": "published",
+      "rating": null,
+      "publicReview": "Delightful guests from Japan! Very polite and interested in London culture. Arigato for staying with us! 🇯🇵",
+      "reviewCategory": [
+        { "category": "communication", "rating": 8 },
+        { "category": "respect_house_rules", "rating": 10 },
+        { "category": "cleanliness", "rating": 10 }
+      ],
+      "submittedAt": "2025-07-08 15:12:44",
+      "guestName": "Tanaka Family",
+      "listingName": "Baker Street Apartment 12B"
+    },
+    {
+      "id": 8924,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 8.9,
+      "publicReview": "Exceptional business accommodation! The Canary Wharf location is perfect for finance sector meetings. Apartment amenities are top-tier - high-speed internet, printer, and excellent lighting for video calls. Building concierge service was outstanding. Will definitely book again for future London business trips.",
+      "reviewCategory": [
+        { "category": "location", "rating": 10 },
+        { "category": "accuracy", "rating": 9 },
+        { "category": "communication", "rating": 9 },
+        { "category": "cleanliness", "rating": 9 },
+        { "category": "check_in", "rating": 9 },
+        { "category": "value", "rating": 8 }
+      ],
+      "submittedAt": "2025-07-05 12:08:15",
+      "guestName": "Catherine Wright",
+      "listingName": "Canary Wharf Executive Suite 45F"
+    },
+    {
+      "id": 8925,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 6.3,
+      "publicReview": "Mixed feelings about this stay. Shoreditch is undeniably cool and trendy, but the apartment had several maintenance issues. Kitchen faucet was loose, bedroom window wouldn't close properly, and WiFi was spotty. Host did try to address issues but response time was slow.",
+      "reviewCategory": [
+        { "category": "location", "rating": 8 },
+        { "category": "accuracy", "rating": 5 },
+        { "category": "communication", "rating": 6 },
+        { "category": "cleanliness", "rating": 7 },
+        { "category": "value", "rating": 6 }
+      ],
+      "submittedAt": "2025-06-28 20:37:52",
+      "guestName": "Alex Turner",
+      "listingName": "2B N1 A - 29 Shoreditch Heights"
+    },
+    {
+      "id": 8926,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 9.4,
+      "publicReview": "Camden is absolutely brilliant for music lovers! 🎸 Stayed here during a music festival weekend and the location couldn't be better. The townhouse has such character and the host provided great local tips. Only tiny issue was some noise from the market during early morning setup, but that's Camden for you!",
+      "reviewCategory": [
+        { "category": "location", "rating": 10 },
+        { "category": "accuracy", "rating": 9 },
+        { "category": "communication", "rating": 10 },
+        { "category": "cleanliness", "rating": 9 },
+        { "category": "noise", "rating": 8 },
+        { "category": "value", "rating": 9 }
+      ],
+      "submittedAt": "2025-06-20 17:22:13",
+      "guestName": "Ryan Murphy",
+      "listingName": "Camden Market Townhouse 3BR"
+    },
+    {
+      "id": 8927,
+      "type": "host-to-guest",
+      "status": "published",
+      "rating": null,
+      "publicReview": "Wonderful repeat guests! Always a pleasure to host you both 😊",
+      "reviewCategory": [
+        { "category": "communication", "rating": 10 },
+        { "category": "respect_house_rules", "rating": 10 },
+        { "category": "cleanliness", "rating": 10 }
+      ],
+      "submittedAt": "2025-06-15 13:45:28",
+      "guestName": "Regular Guests",
+      "listingName": "Covent Garden Studio Loft"
+    },
+    {
+      "id": 8928,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 7.9,
+      "publicReview": "Solid choice for a London stay. Baker Street tube access is fantastic - could get anywhere in the city quickly. Apartment is functional though not luxurious. Good value considering the prime location. Host communication was prompt and helpful.",
+      "reviewCategory": [
+        { "category": "location", "rating": 9 },
+        { "category": "communication", "rating": 8 },
+        { "category": "value", "rating": 8 },
+        { "category": "accuracy", "rating": 7 },
+        { "category": "cleanliness", "rating": 8 }
+      ],
+      "submittedAt": "2025-05-30 11:18:07",
+      "guestName": "Peter Jackson",
+      "listingName": "Baker Street Apartment 12B"
+    },
+    {
+      "id": 8929,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 10.0,
+      "publicReview": "PERFECTION! 🏆 This Canary Wharf suite exceeded every expectation. Modern, spotless, and equipped with everything a business traveler could need. The view from the 45th floor is absolutely breathtaking. Host anticipated every need and the building amenities are world-class. London's finest hospitality! Thank you for making our stay extraordinary.",
+      "reviewCategory": [
+        { "category": "location", "rating": 10 },
+        { "category": "accuracy", "rating": 10 },
+        { "category": "communication", "rating": 10 },
+        { "category": "cleanliness", "rating": 10 },
+        { "category": "check_in", "rating": 10 },
+        { "category": "value", "rating": 10 }
+      ],
+      "submittedAt": "2025-05-15 16:51:34",
+      "guestName": "Executive Team",
+      "listingName": "Canary Wharf Executive Suite 45F"
+    },
+    {
+      "id": 8930,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 8.1,
+      "publicReview": "Très bon emplacement à Covent Garden! 🇫🇷 L'appartement était propre et bien situé pour visiter les attractions. Un petit studio mais bien aménagé. The host was very helpful with restaurant recommendations. Perfect base for exploring central London!",
+      "reviewCategory": [
+        { "category": "location", "rating": 9 },
+        { "category": "accuracy", "rating": 8 },
+        { "category": "communication", "rating": 9 },
+        { "category": "cleanliness", "rating": 8 },
+        { "category": "value", "rating": 8 }
+      ],
+      "submittedAt": "2025-04-22 14:29:41",
+      "guestName": "Marie Blanchard",
+      "listingName": "Covent Garden Studio Loft"
+    },
+    {
+      "id": 8931,
+      "type": "guest-to-host", 
+      "status": "published",
+      "rating": null,
+      "publicReview": "Great weekend in London!",
+      "reviewCategory": [
+        { "category": "location", "rating": 9 },
+        { "category": "cleanliness", "rating": 8 },
+        { "category": "communication", "rating": 9 }
+      ],
+      "submittedAt": "2025-03-18 12:15:22",
+      "guestName": "Weekend Travelers",
+      "listingName": "2B N1 A - 29 Shoreditch Heights"
+    }
+  ]
+}

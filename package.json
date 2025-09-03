@@ -1,0 +1,29 @@
+{
+  "name": "flexliving-reviews-dashboard",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "postinstall": "prisma generate",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev --name init",
+    "db:seed": "ts-node prisma/seed.ts",
+    "ingest:hostaway": "ts-node --loader ts-node/esm scripts/ingest_hostaway.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.17.0",
+    "dayjs": "^1.11.13",
+    "next": "^15.5.2",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.12",
+    "prisma": "^5.17.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
+  }
+}
