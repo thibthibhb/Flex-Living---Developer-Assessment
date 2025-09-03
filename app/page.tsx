@@ -1,4 +1,6 @@
 // app/page.tsx
+export const runtime = "nodejs";
+
 import Link from "next/link";
 import { prisma } from "../lib/db";
 import ApprovalButton from "./ApprovalButton";
@@ -176,6 +178,9 @@ async function getData(searchParams: DashboardSearchParams) {
       break;
   }
 
+  // Get total count for empty database detection
+  const totalReviews = await prisma.review.count();
+  
   const reviews = await prisma.review.findMany({
     where,
     include: { property: true, selection: true, categories: true },
@@ -284,6 +289,7 @@ async function getData(searchParams: DashboardSearchParams) {
       qTrend,
     },
     reviews,
+    totalReviews,
     k30,
     k90,
     trend30,
