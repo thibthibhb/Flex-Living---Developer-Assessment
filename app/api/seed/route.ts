@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     const normalized = normalizeHostaway(json);
 
     // Create properties first
-    const propertyNames = Array.from(new Set(normalized.map((r: any) => r.property_name)));
+    const propertyNames = Array.from(new Set(normalized.map((r: any) => r.property?.name).filter(Boolean)));
     
     for (const propertyName of propertyNames) {
       await prisma.property.upsert({
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
         update: {},
         create: {
           name: propertyName,
-          slug: propertyName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          slug: (propertyName || 'unknown').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
           hostawayName: propertyName,
         }
       });
@@ -51,13 +51,14 @@ export async function POST(request: Request) {
     // Insert reviews
     let insertedCount = 0;
     for (const review of normalized) {
-      const propertyId = propertyMap.get(review.property_name);
+      if (!review.property?.name) continue;
+      const propertyId = propertyMap.get(review.property.name);
       if (!propertyId) continue;
 
       const createdReview = await prisma.review.create({
         data: {
           source: review.source,
-          sourceReviewId: review.id || `hostaway-${Date.now()}-${Math.random()}`,
+          sourceReviewId: review.source_review_id || `hostaway-${Date.now()}-${Math.random()}`,
           propertyId: propertyId,
           reviewType: review.review_type || 'guest-to-host',
           channel: review.channel || 'hostaway',
@@ -65,19 +66,19 @@ export async function POST(request: Request) {
           text: review.text || '',
           submittedAt: new Date(review.submitted_at || Date.now()),
           guestName: review.guest_name || 'Anonymous',
-          status: 'published',
+          status: review.status || 'published',
         }
       });
 
       // Add categories if they exist
-      if (review.categories && Array.isArray(review.categories)) {
-        for (const cat of review.categories) {
-          if (cat.category && typeof cat.rating === 'number') {
+      if (review.categories && typeof review.categories === 'object') {
+        for (const [category, rating] of Object.entries(review.categories)) {
+          if (category && typeof rating === 'number') {
             await prisma.reviewCategoryRating.create({
               data: {
                 reviewId: createdReview.id,
-                category: cat.category,
-                rating: cat.rating,
+                category: category,
+                rating: rating,
               }
             });
           }
