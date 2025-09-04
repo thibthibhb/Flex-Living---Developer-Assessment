@@ -529,13 +529,6 @@ export default async function Dashboard({
                   <strong>Recent:</strong> {count_now} reviews with low ratings<br />
                   <strong>Normal:</strong> {base_avg} on average • {lift === Infinity ? 'New issue' : `${lift.toFixed(1)}× increase`}
                 </div>
-                <a 
-                  className="link-small" 
-                  href={`/?categories=${encodeURIComponent(category)}&status=published&maxRating=6.9&sort=attention`}
-                  style={{ fontSize: 12, textDecoration: 'underline' }}
-                >
-                  View problem reviews →
-                </a>
               </li>
             ))}
           </ul>

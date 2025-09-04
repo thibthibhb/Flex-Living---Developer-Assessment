@@ -1,189 +1,167 @@
-// Analytics utilities for issue detection and response time tracking
+// lib/analytics.ts
+import { prisma } from "./db";
 
-type ReviewWithSelection = {
-  id: string;
-  text: string;
-  submittedAt: Date | string;
-  ratingOverall?: number | null;
-  categories?: Array<{ category: string; rating: number }>;
-  selection?: {
-    approvedAt?: Date | string | null;
-    approvedForWebsite: boolean;
-  } | null;
-};
+export async function kpisLastNDays(days = 30, propertySlug?: string) {
+  const since = new Date(Date.now() - days * 86400000);
+  
+  const where: any = {
+    submittedAt: { gte: since },
+    status: 'published'
+  };
+  
+  if (propertySlug) {
+    where.property = { slug: propertySlug };
+  }
 
-// Issue detection keywords categorized by type
-const ISSUE_KEYWORDS = {
-  cleanliness: ['dirty', 'unclean', 'messy', 'filthy', 'stained', 'smell', 'odor'],
-  maintenance: ['broken', 'damaged', 'repair', 'fix', 'not working', 'faulty', 'leak'],
-  noise: ['loud', 'noisy', 'noise', 'sound', 'music', 'party', 'quiet'],
-  amenities: ['wifi', 'internet', 'tv', 'air conditioning', 'heating', 'hot water'],
-  service: ['rude', 'unhelpful', 'slow response', 'poor service', 'unfriendly'],
-  location: ['far', 'distance', 'transport', 'parking', 'access', 'unsafe']
-};
+  const rows = await prisma.review.findMany({
+    where,
+    select: { 
+      ratingOverall: true, 
+      selection: true,
+      categories: true
+    }
+  });
 
-export type DetectedIssue = {
-  category: string;
-  keyword: string;
-  frequency: number;
-  avgRating: number;
-  severity: 'low' | 'medium' | 'high';
-  examples: string[];
-};
+  const count = rows.length;
+  
+  // Calculate average rating (overall or from categories)
+  const ratings = rows.map(r => {
+    if (r.ratingOverall) return r.ratingOverall;
+    if (r.categories?.length) {
+      return r.categories.reduce((sum, cat) => sum + (cat.rating || 0), 0) / r.categories.length;
+    }
+    return null;
+  }).filter(r => r !== null) as number[];
+  
+  const avg = ratings.length ? ratings.reduce((s, r) => s + r, 0) / ratings.length : 0;
+  const positive = ratings.length ? ratings.filter(r => r >= 8).length / ratings.length : 0;
+  const approved = count ? rows.filter(r => r.selection?.approvedForWebsite).length / count : 0;
+  
+  return { count, avg, positive, approved };
+}
 
-export type ResponseTimeMetrics = {
-  avgResponseTime: number | null; // in days
-  medianResponseTime: number | null;
-  fastestResponse: number | null;
-  slowestResponse: number | null;
-  responsesByDay: Array<{ day: string; avgTime: number; count: number }>;
-  approvalRate: number;
-};
+export async function kpisWoW(days = 30, propertySlug?: string) {
+  const now = Date.now();
+  const aStart = new Date(now - days * 86400000);
+  const bStart = new Date(now - 2 * days * 86400000);
 
-// Detect recurring issues in review text
-export function detectRecurringIssues(reviews: ReviewWithSelection[]): DetectedIssue[] {
-  const issueMap = new Map<string, {
-    keyword: string;
-    count: number;
-    ratings: number[];
-    examples: string[];
-  }>();
+  const baseWhere: any = { status: 'published' };
+  if (propertySlug) {
+    baseWhere.property = { slug: propertySlug };
+  }
 
-  // Analyze each review for issue keywords
+  const [A, B] = await Promise.all([
+    prisma.review.findMany({
+      where: { 
+        ...baseWhere,
+        submittedAt: { gte: aStart }
+      },
+      select: { ratingOverall: true, selection: true, categories: true }
+    }),
+    prisma.review.findMany({
+      where: { 
+        ...baseWhere,
+        submittedAt: { gte: bStart, lt: aStart }
+      },
+      select: { ratingOverall: true, selection: true, categories: true }
+    })
+  ]);
+
+  const mk = (xs: any[]) => {
+    const count = xs.length;
+    const ratings = xs.map(r => {
+      if (r.ratingOverall) return r.ratingOverall;
+      if (r.categories?.length) {
+        return r.categories.reduce((sum: number, cat: any) => sum + (cat.rating || 0), 0) / r.categories.length;
+      }
+      return null;
+    }).filter(r => r !== null) as number[];
+    
+    const avg = ratings.length ? ratings.reduce((s, r) => s + r, 0) / ratings.length : 0;
+    const positive = ratings.length ? ratings.filter(r => r >= 8).length / ratings.length : 0;
+    const approved = count ? xs.filter(r => r.selection?.approvedForWebsite).length / count : 0;
+    return { count, avg, positive, approved };
+  };
+  
+  return { current: mk(A), prev: mk(B) };
+}
+
+export async function countsByDay(days = 30, propertySlug?: string) {
+  const dates: string[] = [];
+  const start = new Date(Date.now() - (days - 1) * 86400000);
+  
+  for (let i = 0; i < days; i++) {
+    dates.push(new Date(+start + i * 86400000).toISOString().slice(0, 10));
+  }
+
+  const where: any = {
+    status: 'published',
+    submittedAt: { gte: start }
+  };
+  
+  if (propertySlug) {
+    where.property = { slug: propertySlug };
+  }
+
+  const rows = await prisma.review.findMany({
+    where,
+    select: { submittedAt: true }
+  });
+
+  // Group by date
+  const map = new Map<string, number>();
+  rows.forEach(r => {
+    const dateStr = r.submittedAt.toISOString().slice(0, 10);
+    map.set(dateStr, (map.get(dateStr) || 0) + 1);
+  });
+
+  return dates.map(d => map.get(d) ?? 0);
+}
+
+export function movingAverage(arr: number[], window = 7) {
+  if (window <= 1 || arr.length === 0) return arr.slice();
+  const out: number[] = [];
+  let sum = 0;
+  const q: number[] = [];
+  
+  for (const v of arr) {
+    q.push(v);
+    sum += v;
+    if (q.length > window) sum -= q.shift()!;
+    out.push(sum / q.length);
+  }
+  
+  return out;
+}
+
+export async function topCategories(days = 90, limit = 6, propertySlug?: string) {
+  const since = new Date(Date.now() - days * 86400000);
+  
+  const where: any = {
+    status: 'published',
+    submittedAt: { gte: since }
+  };
+  
+  if (propertySlug) {
+    where.property = { slug: propertySlug };
+  }
+
+  const reviews = await prisma.review.findMany({
+    where,
+    include: { categories: true }
+  });
+
+  // Count categories
+  const categoryCount = new Map<string, number>();
   reviews.forEach(review => {
-    const text = review.text.toLowerCase();
-    const rating = review.ratingOverall || 0;
-
-    Object.entries(ISSUE_KEYWORDS).forEach(([category, keywords]) => {
-      keywords.forEach(keyword => {
-        if (text.includes(keyword)) {
-          const key = `${category}:${keyword}`;
-          const existing = issueMap.get(key) || {
-            keyword,
-            count: 0,
-            ratings: [],
-            examples: []
-          };
-          
-          existing.count += 1;
-          existing.ratings.push(rating);
-          if (existing.examples.length < 3) {
-            existing.examples.push(review.text.substring(0, 100) + '...');
-          }
-          
-          issueMap.set(key, existing);
-        }
-      });
+    review.categories.forEach(cat => {
+      categoryCount.set(cat.category, (categoryCount.get(cat.category) || 0) + 1);
     });
   });
 
-  // Convert to DetectedIssue array and calculate severity
-  const issues: DetectedIssue[] = Array.from(issueMap.entries())
-    .map(([key, data]) => {
-      const [category] = key.split(':');
-      const avgRating = data.ratings.reduce((sum, r) => sum + r, 0) / data.ratings.length;
-      const frequency = data.count;
-      const totalReviews = reviews.length;
-      
-      // Determine severity based on frequency and rating
-      let severity: 'low' | 'medium' | 'high' = 'low';
-      if (frequency / totalReviews > 0.15 && avgRating < 3) severity = 'high';
-      else if (frequency / totalReviews > 0.08 || avgRating < 3.5) severity = 'medium';
-      
-      return {
-        category,
-        keyword: data.keyword,
-        frequency,
-        avgRating: Math.round(avgRating * 10) / 10,
-        severity,
-        examples: data.examples
-      };
-    })
-    .filter(issue => issue.frequency >= 2) // Only show issues mentioned at least twice
-    .sort((a, b) => {
-      // Sort by severity first, then frequency
-      const severityOrder = { high: 3, medium: 2, low: 1 };
-      if (severityOrder[a.severity] !== severityOrder[b.severity]) {
-        return severityOrder[b.severity] - severityOrder[a.severity];
-      }
-      return b.frequency - a.frequency;
-    });
-
-  return issues;
-}
-
-// Calculate response time metrics for approved reviews
-export function calculateResponseTimeMetrics(reviews: ReviewWithSelection[]): ResponseTimeMetrics {
-  const approvedReviews = reviews.filter(r => 
-    r.selection?.approvedForWebsite && r.selection?.approvedAt
-  );
-
-  if (approvedReviews.length === 0) {
-    return {
-      avgResponseTime: null,
-      medianResponseTime: null,
-      fastestResponse: null,
-      slowestResponse: null,
-      responsesByDay: [],
-      approvalRate: 0
-    };
-  }
-
-  // Calculate response times in days
-  const responseTimes = approvedReviews.map(review => {
-    const submitted = new Date(review.submittedAt);
-    const approved = new Date(review.selection!.approvedAt!);
-    return (approved.getTime() - submitted.getTime()) / (1000 * 60 * 60 * 24);
-  }).sort((a, b) => a - b);
-
-  const avgResponseTime = responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length;
-  const medianResponseTime = responseTimes[Math.floor(responseTimes.length / 2)];
-  const fastestResponse = responseTimes[0];
-  const slowestResponse = responseTimes[responseTimes.length - 1];
-
-  // Group by approval day for trend analysis
-  const responsesByDay = approvedReviews.reduce((acc, review) => {
-    const day = new Date(review.selection!.approvedAt!).toISOString().split('T')[0];
-    const responseTime = (new Date(review.selection!.approvedAt!).getTime() - 
-                         new Date(review.submittedAt).getTime()) / (1000 * 60 * 60 * 24);
-    
-    const existing = acc.find(entry => entry.day === day);
-    if (existing) {
-      existing.avgTime = (existing.avgTime * existing.count + responseTime) / (existing.count + 1);
-      existing.count += 1;
-    } else {
-      acc.push({ day, avgTime: responseTime, count: 1 });
-    }
-    
-    return acc;
-  }, [] as Array<{ day: string; avgTime: number; count: number }>);
-
-  const approvalRate = Math.round((approvedReviews.length / reviews.length) * 100);
-
-  return {
-    avgResponseTime: Math.round(avgResponseTime * 10) / 10,
-    medianResponseTime: Math.round(medianResponseTime * 10) / 10,
-    fastestResponse: Math.round(fastestResponse * 10) / 10,
-    slowestResponse: Math.round(slowestResponse * 10) / 10,
-    responsesByDay: responsesByDay.sort((a, b) => a.day.localeCompare(b.day)),
-    approvalRate
-  };
-}
-
-// Helper function to get color for trend indicators
-export function getTrendColor(trend: 'up' | 'down' | 'stable'): string {
-  switch (trend) {
-    case 'up': return 'var(--success)';
-    case 'down': return 'var(--warn)';
-    case 'stable': return 'var(--muted)';
-  }
-}
-
-// Helper function to get severity color
-export function getSeverityColor(severity: 'low' | 'medium' | 'high'): string {
-  switch (severity) {
-    case 'high': return '#EF4444'; // red
-    case 'medium': return '#F59E0B'; // amber  
-    case 'low': return '#10B981'; // green
-  }
+  // Sort and limit
+  return Array.from(categoryCount.entries())
+    .map(([category, c]) => ({ category, c }))
+    .sort((a, b) => b.c - a.c)
+    .slice(0, limit);
 }

@@ -33,6 +33,9 @@
   --space-4: 18px;
   --space-5: 24px;
   --space-6: 32px;
+  --accent: #0ea5a3; 
+  --good: #0f766e; 
+  --bad: #b91c1c;
 }
 
 *{box-sizing:border-box}
@@ -575,7 +578,43 @@ details.filters-more:not([open]) .when-open{display:none}
 .sticky-actions{position:sticky; bottom:8px; display:flex; gap:10px; justify-content:flex-end; padding-top:8px;
   background:linear-gradient(180deg, rgba(255,255,255,0), #fff 45%)}
 
+/* Analytics hero */
+.analytics-hero{
+  background: radial-gradient(1200px 300px at 10% -10%, rgba(14,165,163,.10), transparent 60%),
+              radial-gradient(1200px 300px at 90% -10%, rgba(30,79,67,.12), transparent 60%);
+  border:1px solid var(--border); border-radius:16px; padding:18px; box-shadow:var(--shadow);
+}
+.analytics-hero h1{ margin:0 0 4px; font-weight:800; letter-spacing:-.02em }
+.analytics-hero p{ margin:0; color:var(--muted) }
+
+/* KPI grid */
+.kpi-grid{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-top:12px }
+.kpi{
+  background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px; box-shadow:var(--shadow);
+  display:grid; grid-template-rows:auto auto; gap:8px; text-decoration:none; color:inherit;
+}
+.kpi .label{ color:var(--muted); font-size:12px }
+.kpi .value{ font-weight:800; font-size:28px; letter-spacing:-.02em }
+.kpi .delta{ font-size:12px }
+.kpi .delta.up{ color:var(--good) } .kpi .delta.down{ color:var(--bad) }
+
+/* Clickable insight cards */
+.cards{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:12px }
+.click-card{
+  background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px; box-shadow:var(--shadow);
+  text-decoration:none; color:inherit; display:flex; flex-direction:column; gap:6px;
+}
+.click-card:hover{ background:#fbfdfa }
+
+/* Tiny sparkline */
+.spark{ display:block }
+
+/* Simple list */
+.list{ list-style:none; padding:0; margin:0; display:grid; gap:8px }
+.list li{ display:flex; justify-content:space-between; gap:12px; border:1px solid var(--border); border-radius:10px; padding:8px; background:var(--surface) }
+
 /* Responsive */
+@media (max-width: 1100px){ .kpi-grid{ grid-template-columns:repeat(2,1fr) } .cards{ grid-template-columns:1fr } }
 @media (max-width: 1000px){
   .frow{grid-template-columns:1fr 1fr}
   .frow-more{grid-template-columns:1fr 1fr}
