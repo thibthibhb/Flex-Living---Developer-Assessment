@@ -748,7 +748,7 @@ export default async function Dashboard({
                       <td className="cell-text">
                         <ExpandableText text={r.text ?? ""} max={110} />
                       </td>
-                      <td className={ratingClass}>{r.ratingOverall ?? "—"}</td>
+                      <td className={ratingClass}>{effectiveRating?.toFixed(1) ?? "—"}</td>
                       <td>
                         <CategoryDisplay categories={r.categories} maxVisible={3} />
                       </td>
