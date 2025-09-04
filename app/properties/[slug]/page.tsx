@@ -237,34 +237,6 @@ export default async function PropertyPage({
           })()}
         </section>
 
-        {/* Why stay with Flex info box */}
-        <section className="col-12">
-          <div className="card" style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
-            <h3 style={{ margin: '0 0 12px 0', color: 'var(--primary)', fontSize: '18px', fontWeight: '600' }}>Why stay with The Flex?</h3>
-            <p style={{ margin: '0 0 16px 0', color: 'var(--text)', lineHeight: '1.6' }}>
-              Every property in our portfolio is personally selected and continuously refined to deliver 
-              exceptional hospitality experiences. We focus on the details that matter most to modern travelers.
-            </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginTop: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--muted)' }}>
-                <span style={{ color: 'var(--primary)' }}>✓</span>
-                <span>Thoughtfully designed spaces</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--muted)' }}>
-                <span style={{ color: 'var(--primary)' }}>✓</span>
-                <span>Premium amenities</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--muted)' }}>
-                <span style={{ color: 'var(--primary)' }}>✓</span>
-                <span>24/7 guest support</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--muted)' }}>
-                <span style={{ color: 'var(--primary)' }}>✓</span>
-                <span>Flexible booking options</span>
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
     </div>
   );
