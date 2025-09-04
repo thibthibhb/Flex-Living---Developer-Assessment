@@ -32,7 +32,7 @@ NEXT_PUBLIC_GOOGLE_ENABLED=1
 
 ## Key Features
 
-✅ **Hostaway Integration** (mocked with realistic data)  
+✅ **Hostaway Integration** (real API + intelligent mock fallback)  
 ✅ **Google Reviews** via Places API (server-side, cached)  
 ✅ **Review Approval System** with security validation  
 ✅ **Advanced Filtering** (property, rating, text, categories, dates)  

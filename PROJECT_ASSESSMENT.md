@@ -79,30 +79,41 @@ Selection (reviewId, approvedForWebsite)           -- Manager decisions
 ## API Behaviors
 
 ### `/api/reviews/hostaway`
-**Purpose**: Mock Hostaway integration for development and testing.
+**Purpose**: Real Hostaway API integration with intelligent fallback to mock data.
 
 **Behavior**:
-- Reads from `mock_data/hostaway_reviews.json` (34 realistic reviews across 5 properties)
-- Normalizes Hostaway format to internal schema with Zod validation
-- Supports query parameters: `listingId`, `from`, `to`, `channel`, `limit`, `cursor`
-- Returns paginated response with `nextCursor` for large datasets
-- **Error Handling**: 400 for invalid parameters, 500 for processing errors
+- **Primary**: Attempts to fetch reviews from Hostaway API using provided credentials (Account ID: 61148)
+- **Authentication**: Uses Bearer token and X-Hostaway-Account-Id headers
+- **Endpoint Discovery**: Tries multiple common review endpoint patterns (`/reviews`, `/accounts/{id}/reviews`, etc.)
+- **Sandbox Handling**: When API returns no reviews (expected in sandbox), gracefully falls back to mock data
+- **Smart Filtering**: Applies query parameters to both API responses and mock data fallback
+- **Full Pagination**: Supports `limit`, `cursor` for efficient data traversal
+- **Error Resilience**: Handles 404 (endpoint not found), 401/403 (auth failures), timeouts
 
-**Sample Response**:
+**Query Parameters**:
+- `listingId`: Filter by specific property
+- `from`/`to`: Date range filtering (ISO format)
+- `channel`: Filter by review channel (hostaway, booking, etc.)
+- `limit`: Number of reviews to return (default 50)
+- `cursor`: Pagination cursor for next page
+
+**Response Format**:
 ```json
 {
-  "reviews": [{
-    "id": "hostaway:7453",
-    "listingId": "2B N1 A - 29 Shoreditch Heights",
-    "source": "hostaway",
-    "status": "published",
-    "text": "Excellent stay with modern amenities...",
-    "categories": [{"category": "cleanliness", "rating": 10}],
-    "date": "2020-08-21T22:45:14Z"
-  }],
-  "meta": { "nextCursor": "eyJ0aW1lc3RhbXAiOiIyMDIwLTA4LTIx..." }
+  "reviews": [NormalizedReview],
+  "meta": { 
+    "total": 44,
+    "nextCursor": "42" 
+  },
+  "source": "hostaway_api" | "mock_data"
 }
 ```
+
+**Implementation Strategy**:
+1. **Try Real API**: Attempts authentication with multiple endpoint patterns
+2. **Log Discovery**: Console logs show which endpoints are being tested
+3. **Graceful Fallback**: Uses mock data when API is empty (sandbox scenario)
+4. **Maintain Contract**: Same response format regardless of data source
 
 ### `/api/google/place`
 **Purpose**: Server-side proxy for Google Places API with caching and error handling.
