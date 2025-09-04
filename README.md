@@ -2,6 +2,8 @@
 
 > Manager-friendly dashboard to ingest, normalize and curate guest reviews with analytics and Google Reviews integration.
 
+**🌐 Live Demo: https://flex-living-gray.vercel.app/**
+
 ## Quick Start
 
 ```bash
