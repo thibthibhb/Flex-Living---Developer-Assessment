@@ -549,6 +549,163 @@
       "submittedAt": "2025-03-18 12:15:22",
       "guestName": "Weekend Travelers",
       "listingName": "2B N1 A - 29 Shoreditch Heights"
+    },
+    {
+      "id": 8932,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 7.5,
+      "publicReview": "Good location and clean apartment. Host had some communication delays which made coordination difficult at times.",
+      "reviewCategory": [
+        { "category": "cleanliness", "rating": 8 },
+        { "category": "location", "rating": 9 },
+        { "category": "communication", "rating": 5 },
+        { "category": "accuracy", "rating": 7 }
+      ],
+      "submittedAt": "2025-09-02 16:42:33",
+      "guestName": "Jennifer Adams",
+      "listingName": "Baker Street Apartment 12B"
+    },
+    {
+      "id": 8933,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 7.8,
+      "publicReview": "Nice apartment in great location. Clean and well-equipped. Had some trouble reaching the host initially for questions.",
+      "reviewCategory": [
+        { "category": "cleanliness", "rating": 8 },
+        { "category": "location", "rating": 9 },
+        { "category": "communication", "rating": 5 },
+        { "category": "accuracy", "rating": 8 }
+      ],
+      "submittedAt": "2025-09-03 11:18:14",
+      "guestName": "Michael Torres",
+      "listingName": "Covent Garden Studio Loft"
+    },
+    {
+      "id": 8934,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 8.2,
+      "publicReview": "Great flat with excellent location and value. Clean and well-maintained. Host was a bit slow to respond to messages.",
+      "reviewCategory": [
+        { "category": "cleanliness", "rating": 8 },
+        { "category": "location", "rating": 9 },
+        { "category": "communication", "rating": 6 },
+        { "category": "value", "rating": 8 }
+      ],
+      "submittedAt": "2025-08-31 09:25:41",
+      "guestName": "Sarah Wilson",
+      "listingName": "Camden Market Townhouse 3BR"
+    },
+    {
+      "id": 8935,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 7.3,
+      "publicReview": "Nice apartment in vibrant Shoreditch area. Check-in was smooth and place was as described. Communication could be improved - host wasn't very responsive.",
+      "reviewCategory": [
+        { "category": "check_in", "rating": 8 },
+        { "category": "communication", "rating": 4 },
+        { "category": "location", "rating": 9 },
+        { "category": "accuracy", "rating": 8 }
+      ],
+      "submittedAt": "2025-09-01 14:33:22",
+      "guestName": "Robert Chen",
+      "listingName": "2B N1 A - 29 Shoreditch Heights"
+    },
+    {
+      "id": 8936,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 8.0,
+      "publicReview": "Clean apartment with good value in Baker Street. Everything was as described. Had difficulty getting timely responses from host about local recommendations.",
+      "reviewCategory": [
+        { "category": "cleanliness", "rating": 8 },
+        { "category": "accuracy", "rating": 8 },
+        { "category": "communication", "rating": 5 },
+        { "category": "value", "rating": 8 }
+      ],
+      "submittedAt": "2025-08-30 18:47:55",
+      "guestName": "Emma Thompson",
+      "listingName": "Baker Street Apartment 12B"
+    },
+    {
+      "id": 8937,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 7.5,
+      "publicReview": "Beautiful executive suite with amazing views. Check-in went smoothly and apartment was immaculate. Host communication was slow when we had questions.",
+      "reviewCategory": [
+        { "category": "check_in", "rating": 8 },
+        { "category": "communication", "rating": 5 },
+        { "category": "cleanliness", "rating": 9 },
+        { "category": "accuracy", "rating": 8 }
+      ],
+      "submittedAt": "2025-08-29 20:12:08",
+      "guestName": "Lisa Rodriguez",
+      "listingName": "Canary Wharf Executive Suite 45F"
+    },
+    {
+      "id": 8938,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 8.3,
+      "publicReview": "Excellent location in Covent Garden with quiet surroundings. Apartment was exactly as advertised. Host was hard to reach for questions about the area.",
+      "reviewCategory": [
+        { "category": "location", "rating": 9 },
+        { "category": "cleanliness", "rating": 8 },
+        { "category": "communication", "rating": 6 },
+        { "category": "accuracy", "rating": 8 }
+      ],
+      "submittedAt": "2025-09-04 08:33:17",
+      "guestName": "David Park",
+      "listingName": "Covent Garden Studio Loft"
+    },
+    {
+      "id": 8939,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 8.1,
+      "publicReview": "Very clean apartment with good amenities. Everything was as described in the listing. Host didn't respond quickly to our inquiry about late checkout.",
+      "reviewCategory": [
+        { "category": "cleanliness", "rating": 9 },
+        { "category": "accuracy", "rating": 8 },
+        { "category": "communication", "rating": 6 }
+      ],
+      "submittedAt": "2025-09-04 10:15:22",
+      "guestName": "Anna Miller",
+      "listingName": "Baker Street Apartment 12B"
+    },
+    {
+      "id": 8940,
+      "type": "guest-to-host",
+      "status": "published",
+      "rating": 7.8,
+      "publicReview": "Great check-in process and clean spacious townhouse. Perfect Camden location. Host was slow to respond when we needed help with the WiFi password.",
+      "reviewCategory": [
+        { "category": "check_in", "rating": 8 },
+        { "category": "cleanliness", "rating": 8 },
+        { "category": "communication", "rating": 6 }
+      ],
+      "submittedAt": "2025-09-03 14:28:55",
+      "guestName": "James Wilson",
+      "listingName": "Camden Market Townhouse 3BR"
+    },
+    {
+      "id": 8941,
+      "type": "guest-to-host",
+      "status": "published", 
+      "rating": 7.9,
+      "publicReview": "Clean apartment with good value in trendy Shoreditch. Everything was well-maintained. Host took a while to respond to questions about local attractions.",
+      "reviewCategory": [
+        { "category": "cleanliness", "rating": 8 },
+        { "category": "value", "rating": 8 },
+        { "category": "communication", "rating": 6 }
+      ],
+      "submittedAt": "2025-09-02 18:45:12",
+      "guestName": "Sophie Brown",
+      "listingName": "2B N1 A - 29 Shoreditch Heights"
     }
   ]
 }

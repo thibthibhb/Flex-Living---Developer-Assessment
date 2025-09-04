@@ -9,7 +9,7 @@ import Navigation from "./(components)/Navigation";
 import ExpandableText from "./(components)/ExpandableText";
 import CategoryDisplay from "./(components)/CategoryDisplay";
 import FiltersBar from "../components/FiltersBar";
-import { kpisFor, kpisWithDeltas, countsByDay, movingAverage, cumulative, bucketCounts, WoWDelta } from "../lib/stats"; 
+import { kpisFor, kpisWithDeltas, countsByDay, movingAverage, cumulative, bucketCounts, WoWDelta, detectIssueSpikes, IssueSpike } from "../lib/stats"; 
 
 // --- Enhanced sparkline with consistent scaling and zero baseline ---
 function Sparkline({
@@ -92,6 +92,7 @@ function WoWIndicator({ delta }: { delta: WoWDelta | null }) {
     </span>
   );
 }
+
 
 // Put this near the top of app/page.tsx
 type DashboardSearchParams = Record<string, string | string[] | undefined>;
@@ -332,6 +333,16 @@ async function getData(searchParams: DashboardSearchParams) {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 8);
 
+  // Issues detection (last 7d vs baseline)
+  const since7d = new Date();
+  since7d.setDate(since7d.getDate() - 7);
+  const last7d = last90.filter((r) => new Date(r.submittedAt) >= since7d);
+  
+  // Use previous 90d as baseline (excluding the recent 7d)
+  const baseline = prev90.length > 0 ? prev90 : last90.filter((r) => new Date(r.submittedAt) < since7d);
+  
+  const issues = detectIssueSpikes(last7d, baseline);
+
   return {
     filters: {
       qProperty,
@@ -356,6 +367,7 @@ async function getData(searchParams: DashboardSearchParams) {
     topCategories,
     last30,
     last90,
+    issues,
   };
 }
 
@@ -367,7 +379,7 @@ export default async function Dashboard({
   const sp = await searchParams; // <-- important
 
   const { properties, allCategories, allChannels } = await getOptions();
-  const { filters, reviews, k30, k90, trend30, trend90, topCategories, last30, last90 } =
+  const { filters, reviews, k30, k90, trend30, trend90, topCategories, last30, last90, issues } =
     await getData(sp);
 
   // Create categories control
@@ -483,6 +495,51 @@ export default async function Dashboard({
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Issues Panel */}
+      <section className="col-12 panel" style={{ marginBottom: 16 }}>
+        <h2 style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+          🚨 Recurring issues
+          <small style={{ fontWeight: 'normal', color: 'var(--muted)' }}>(last 7d vs baseline)</small>
+        </h2>
+        {issues.length === 0 ? (
+          <p className="muted">No recurring issues detected this week.</p>
+        ) : (
+          <ul style={{ 
+            display: 'grid', 
+            gap: 8, 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+            listStyle: 'none',
+            padding: 0,
+            margin: 0
+          }}>
+            {issues.map(({ category, count_now, base_avg, lift, severity }) => (
+              <li key={category} className="panel" style={{ 
+                padding: 10, 
+                borderLeft: `3px solid ${
+                  severity === 'high' ? '#DC2626' : 
+                  severity === 'medium' ? '#D97706' : '#16A34A'
+                }`
+              }}>
+                <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                  {category.replaceAll('_', ' ')}
+                </div>
+                <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>
+                  <strong>Recent:</strong> {count_now} reviews with low ratings<br />
+                  <strong>Normal:</strong> {base_avg} on average • {lift === Infinity ? 'New issue' : `${lift.toFixed(1)}× increase`}
+                </div>
+                <a 
+                  className="link-small" 
+                  href={`/?categories=${encodeURIComponent(category)}&status=published&maxRating=6.9&sort=attention`}
+                  style={{ fontSize: 12, textDecoration: 'underline' }}
+                >
+                  View problem reviews →
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       {/* Trends */}
@@ -689,7 +746,7 @@ export default async function Dashboard({
                   const effectiveRating = r.ratingOverall ?? 
                     (r.categories?.length ? r.categories.reduce((s: number, c: any) => s + (c.rating ?? 0), 0) / r.categories.length : null);
                   const canApprove = r.status === "published";
-                  const ratingClass = effectiveRating ? (effectiveRating < 7 ? "rating-low" : effectiveRating < 8.5 ? "rating-medium" : "rating-high") : "";
+                  const ratingClass = effectiveRating ? (effectiveRating < 7 ? "rating-low" : effectiveRating < 8 ? "rating-medium" : "rating-high") : "";
                   
                   return (
                     <tr key={r.id} className={r.status !== "published" ? "row-removed" : undefined}>

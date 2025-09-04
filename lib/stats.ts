@@ -129,3 +129,78 @@ export function kpisWithDeltas(current: ReviewForStats[], previous: ReviewForSta
     posPctDelta: calculateWoWDelta(currentKPIs.posPct, previousKPIs.posPct),
   };
 }
+
+/** Issue spike detection */
+export type IssueSpike = {
+  category: string;
+  count_now: number;
+  base_avg: number;
+  lift: number;
+  severity: 'low' | 'medium' | 'high';
+};
+
+export function detectIssueSpikes(
+  recent7d: { categories: CategoryRating[] }[],
+  baseline: { categories: CategoryRating[] }[]
+): IssueSpike[] {
+  // Count low ratings (<7) by category in recent 7d
+  const recentLowRatings = new Map<string, number>();
+  for (const review of recent7d) {
+    for (const cat of review.categories || []) {
+      if (cat.rating < 7) { // Issues are ratings below 7
+        recentLowRatings.set(cat.category, (recentLowRatings.get(cat.category) || 0) + 1);
+      }
+    }
+  }
+  
+  // Count low ratings by category in baseline (per week average)
+  const baselineLowRatings = new Map<string, number>();
+  const baselineWeeks = Math.max(1, Math.ceil(baseline.length / 7)); // Rough weeks estimate
+  
+  for (const review of baseline) {
+    for (const cat of review.categories || []) {
+      if (cat.rating < 7) {
+        baselineLowRatings.set(cat.category, (baselineLowRatings.get(cat.category) || 0) + 1);
+      }
+    }
+  }
+  
+  const spikes: IssueSpike[] = [];
+  
+  for (const [category, nowCount] of recentLowRatings.entries()) {
+    const baselineTotal = baselineLowRatings.get(category) || 0;
+    const baseAvg = baselineTotal / baselineWeeks;
+    
+    // Only flag if we have meaningful baseline data and significant increase
+    if (baseAvg >= 1 && nowCount > 0) {
+      const lift = nowCount / baseAvg;
+      if (lift >= 1.5) { // At least 50% increase
+        const severity = lift >= 3 ? 'high' : lift >= 2 ? 'medium' : 'low';
+        spikes.push({
+          category,
+          count_now: nowCount,
+          base_avg: Math.round(baseAvg * 10) / 10, // Round to 1 decimal
+          lift,
+          severity
+        });
+      }
+    } else if (baseAvg < 1 && nowCount >= 3) {
+      // New issues with no baseline but multiple occurrences
+      spikes.push({
+        category,
+        count_now: nowCount,
+        base_avg: 0,
+        lift: Infinity,
+        severity: 'medium'
+      });
+    }
+  }
+  
+  // Sort by lift (highest first)
+  return spikes.sort((a, b) => {
+    if (b.lift === Infinity && a.lift !== Infinity) return 1;
+    if (a.lift === Infinity && b.lift !== Infinity) return -1;
+    if (a.lift === Infinity && b.lift === Infinity) return b.count_now - a.count_now;
+    return b.lift - a.lift;
+  }).slice(0, 8); // Top 8 issues
+}
