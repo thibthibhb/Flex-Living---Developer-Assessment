@@ -9,41 +9,43 @@ import Navigation from "./(components)/Navigation";
 import ExpandableText from "./(components)/ExpandableText";
 import CategoryDisplay from "./(components)/CategoryDisplay";
 import FiltersBar from "../components/FiltersBar";
-import { kpisFor, countsByDay, movingAverage, cumulative, bucketCounts } from "../lib/stats"; 
+import { kpisFor, kpisWithDeltas, countsByDay, movingAverage, cumulative, bucketCounts, WoWDelta } from "../lib/stats"; 
 
-// --- tiny inline sparkline (pure SVG, no client JS needed) ---
+// --- Enhanced sparkline with consistent scaling and zero baseline ---
 function Sparkline({
   data,
   width = 220,
   height = 40,
   label,
   area = true,
-  zeroBaseline = true,
+  maxValue,
 }: {
   data: number[];
   width?: number;
   height?: number;
   label?: string;
   area?: boolean;
-  zeroBaseline?: boolean;
+  maxValue?: number;
 }) {
   const n = data.length;
   if (n === 0) return <svg width={width} height={height} aria-label={label} />;
 
-  // Domain with optional zero-baseline
-  const minVal = zeroBaseline ? 0 : Math.min(...data);
-  const maxVal = Math.max(...data, zeroBaseline ? 0 : -Infinity);
-  const range = maxVal - minVal || 1;
+  // Always use zero baseline for consistent interpretation
+  const minVal = 0;
+  // Use consistent max scaling - either provided maxValue or reasonable default based on data
+  const dataMax = Math.max(...data);
+  const maxVal = maxValue || Math.max(dataMax * 1.2, 5); // Add 20% headroom or minimum of 5
+  const range = maxVal - minVal;
 
   const pts = data.map((v, i) => {
     const x = n === 1 ? width / 2 : (i / (n - 1)) * width;
-    const y = height - ((v - minVal) / range) * height;
+    const y = height - ((Math.min(v, maxVal) - minVal) / range) * height;
     return [x, y] as const;
   });
 
   const line = "M " + pts.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(" L ");
 
-  // Area path closes to baseline
+  // Area path always closes to zero baseline
   const areaPath = area
     ? `M 0 ${height} L ${pts
         .map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`)
@@ -53,11 +55,41 @@ function Sparkline({
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={label}>
       {label ? <title>{label}</title> : null}
-      {/* subtle baseline */}
-      <line x1="0" y1={height - 0.5} x2={width} y2={height - 0.5} stroke="currentColor" opacity="0.15" />
-      {areaPath ? <path d={areaPath} fill="currentColor" opacity="0.08" /> : null}
-      <path d={line} fill="none" stroke="currentColor" strokeWidth="2" />
+      {/* Zero baseline - always visible */}
+      <line x1="0" y1={height - 0.5} x2={width} y2={height - 0.5} stroke="currentColor" opacity="0.2" strokeWidth="1" />
+      {/* Subtle area fill */}
+      {areaPath ? <path d={areaPath} fill="currentColor" opacity="0.12" /> : null}
+      {/* Main trend line */}
+      <path d={line} fill="none" stroke="currentColor" strokeWidth="2.5" opacity="0.8" />
     </svg>
+  );
+}
+
+// WoW Delta indicator component
+function WoWIndicator({ delta }: { delta: WoWDelta | null }) {
+  if (!delta || !delta.percentChange) return null;
+  
+  const symbol = delta.direction === 'up' ? '▲' : delta.direction === 'down' ? '▼' : '▬';
+  const colorMap = {
+    green: '#16A34A',
+    red: '#DC2626', 
+    gray: '#6B7280'
+  };
+  
+  return (
+    <span 
+      style={{ 
+        color: colorMap[delta.color], 
+        fontSize: '12px', 
+        fontWeight: '600',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '2px',
+        marginLeft: '6px'
+      }}
+    >
+      {symbol} {Math.abs(delta.percentChange!)}%
+    </span>
   );
 }
 
@@ -239,9 +271,32 @@ async function getData(searchParams: DashboardSearchParams) {
     take: 2000,
   });
   const last30 = last90.filter((r) => new Date(r.submittedAt) >= since30);
+  
+  // WoW calculations - previous periods for comparison
+  const since60 = new Date();
+  since60.setDate(since60.getDate() - 60);
+  const since120 = new Date();
+  since120.setDate(since120.getDate() - 120);
+  
+  const prev30 = last90.filter((r) => {
+    const date = new Date(r.submittedAt);
+    return date >= since60 && date < since30;
+  });
+  const prev90 = await prisma.review.findMany({
+    where: { 
+      ...propFilter, 
+      submittedAt: { 
+        gte: since120, 
+        lt: since90 
+      } 
+    },
+    include: { categories: true },
+    take: 2000,
+  });
 
-  const k30 = kpisFor(last30);
-  const k90 = kpisFor(last90);
+  // Calculate KPIs with WoW deltas
+  const k30 = kpisWithDeltas(last30, prev30);
+  const k90 = kpisWithDeltas(last90, prev90);
   
   // Base daily counts
   const daily30 = countsByDay(last30, 30);
@@ -299,6 +354,8 @@ async function getData(searchParams: DashboardSearchParams) {
     trend30,
     trend90,
     topCategories,
+    last30,
+    last90,
   };
 }
 
@@ -310,7 +367,7 @@ export default async function Dashboard({
   const sp = await searchParams; // <-- important
 
   const { properties, allCategories, allChannels } = await getOptions();
-  const { filters, reviews, k30, k90, trend30, trend90, topCategories } =
+  const { filters, reviews, k30, k90, trend30, trend90, topCategories, last30, last90 } =
     await getData(sp);
 
   // Create categories control
@@ -347,23 +404,83 @@ export default async function Dashboard({
 
 
 
-      {/* KPIs */}
+      {/* HEART Framework KPIs with WoW Deltas */}
       <section className="col-12" style={{ marginBottom: 8 }}>
-        <div className="kpi-grid">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16 }}>
+          {/* Happiness */}
           <div className="kpi">
-            <h4>Avg rating</h4>
-            <div className="v">{k30.avg != null ? k30.avg.toFixed(1) : "—"} <small>(30d)</small></div>
-            <div className="v" style={{ fontSize: 14, color: "var(--muted)" }}>{k90.avg != null ? k90.avg.toFixed(1) : "—"} <small>(90d)</small></div>
+            <h4>😊 Happiness</h4>
+            <small style={{ color: "var(--muted)", marginBottom: 4, display: "block" }}>Avg rating</small>
+            <div className="v">
+              {k30.avg != null ? k30.avg.toFixed(1) : "—"} 
+              <small>(30d)</small>
+              <WoWIndicator delta={k30.avgDelta} />
+            </div>
+            <div className="v" style={{ fontSize: 14, color: "var(--muted)" }}>
+              {k90.avg != null ? k90.avg.toFixed(1) : "—"} 
+              <small>(90d)</small>
+              <WoWIndicator delta={k90.avgDelta} />
+            </div>
           </div>
+          
+          {/* Engagement */}
           <div className="kpi">
-            <h4># Reviews</h4>
-            <div className="v">{k30.count} <small>(30d)</small></div>
-            <div className="v" style={{ fontSize: 14, color: "var(--muted)" }}>{k90.count} <small>(90d)</small></div>
+            <h4>📊 Engagement</h4>
+            <small style={{ color: "var(--muted)", marginBottom: 4, display: "block" }}># Reviews</small>
+            <div className="v">
+              {k30.count} 
+              <small>(30d)</small>
+              <WoWIndicator delta={k30.countDelta} />
+            </div>
+            <div className="v" style={{ fontSize: 14, color: "var(--muted)" }}>
+              {k90.count} 
+              <small>(90d)</small>
+              <WoWIndicator delta={k90.countDelta} />
+            </div>
           </div>
+          
+          {/* Adoption */}
           <div className="kpi">
-            <h4>% Positive (≥ 8)</h4>
-            <div className="v">{k30.posPct != null ? `${k30.posPct}%` : "—"} <small>(30d)</small></div>
-            <div className="v" style={{ fontSize: 14, color: "var(--muted)" }}>{k90.posPct != null ? `${k90.posPct}%` : "—"} <small>(90d)</small></div>
+            <h4>✅ Adoption</h4>
+            <small style={{ color: "var(--muted)", marginBottom: 4, display: "block" }}>% Positive (≥ 8)</small>
+            <div className="v">
+              {k30.posPct != null ? `${k30.posPct}%` : "—"} 
+              <small>(30d)</small>
+              <WoWIndicator delta={k30.posPctDelta} />
+            </div>
+            <div className="v" style={{ fontSize: 14, color: "var(--muted)" }}>
+              {k90.posPct != null ? `${k90.posPct}%` : "—"} 
+              <small>(90d)</small>
+              <WoWIndicator delta={k90.posPctDelta} />
+            </div>
+          </div>
+          
+          {/* Retention */}
+          <div className="kpi">
+            <h4>🔄 Retention</h4>
+            <small style={{ color: "var(--muted)", marginBottom: 4, display: "block" }}>Repeat reviews</small>
+            <div className="v">
+              —
+              <small>(30d)</small>
+            </div>
+            <div className="v" style={{ fontSize: 14, color: "var(--muted)" }}>
+              —
+              <small>(90d)</small>
+            </div>
+          </div>
+          
+          {/* Task success */}
+          <div className="kpi">
+            <h4>🎯 Task Success</h4>
+            <small style={{ color: "var(--muted)", marginBottom: 4, display: "block" }}>Avg categories</small>
+            <div className="v">
+              {last30.length ? (last30.reduce((sum, r) => sum + (r.categories?.length || 0), 0) / last30.length).toFixed(1) : "—"}
+              <small>(30d)</small>
+            </div>
+            <div className="v" style={{ fontSize: 14, color: "var(--muted)" }}>
+              {last90.length ? (last90.reduce((sum, r) => sum + (r.categories?.length || 0), 0) / last90.length).toFixed(1) : "—"}
+              <small>(90d)</small>
+            </div>
           </div>
         </div>
       </section>
@@ -400,12 +517,24 @@ export default async function Dashboard({
 
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16 }}>
           <div>
-            <div className="muted" style={{ marginBottom: 6 }}>30d</div>
-            <Sparkline data={trend30} width={340} height={46} label="Reviews per day last 30 days"/>
+            <div className="muted" style={{ marginBottom: 6 }}>30d trend</div>
+            <Sparkline 
+              data={trend30} 
+              width={340} 
+              height={46} 
+              label="Reviews per day last 30 days"
+              maxValue={Math.max(...trend30, ...trend90) * 1.1}
+            />
           </div>
           <div>
-            <div className="muted" style={{ marginBottom: 6 }}>90d</div>
-            <Sparkline data={trend90} width={340} height={46} label="Reviews per day last 90 days"/>
+            <div className="muted" style={{ marginBottom: 6 }}>90d trend</div>
+            <Sparkline 
+              data={trend90} 
+              width={340} 
+              height={46} 
+              label="Reviews per day last 90 days"
+              maxValue={Math.max(...trend30, ...trend90) * 1.1}
+            />
           </div>
           <div>
             <div className="muted" style={{ marginBottom: 6 }}>Top categories (90d)</div>

@@ -108,46 +108,6 @@ export default function Navigation({ properties, currentPath = "/", maxVisible =
             📈 Analytics
           </Link>
 
-          <div style={{ height: '20px', width: '1px', background: 'var(--border)' }} />
-          
-          {/* API Links */}
-          <span style={{ fontSize: '13px', color: 'var(--muted)', fontWeight: '600' }}>
-            APIs:
-          </span>
-          <Link 
-            href="/api/reviews/hostaway" 
-            className="nav-link api-link"
-            style={{
-              textDecoration: 'none',
-              padding: '4px 8px',
-              borderRadius: '6px',
-              fontSize: '12px',
-              background: '#F8FAFC',
-              color: 'var(--muted)',
-              border: '1px solid var(--border)',
-              transition: 'all 0.15s ease'
-            }}
-            target="_blank"
-          >
-            Hostaway
-          </Link>
-          <Link 
-            href="/api/analytics/property-comparison" 
-            className="nav-link api-link"
-            style={{
-              textDecoration: 'none',
-              padding: '4px 8px',
-              borderRadius: '6px',
-              fontSize: '12px',
-              background: '#F8FAFC',
-              color: 'var(--muted)',
-              border: '1px solid var(--border)',
-              transition: 'all 0.15s ease'
-            }}
-            target="_blank"
-          >
-            Export
-          </Link>
         </div>
       </div>
 

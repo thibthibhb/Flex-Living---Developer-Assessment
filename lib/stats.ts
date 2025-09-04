@@ -89,3 +89,43 @@ export function bucketCounts(arr: number[], size = 7): number[] {
   }
   return out;
 }
+
+/** Calculate WoW (week-over-week) delta with directional indicator */
+export type WoWDelta = {
+  value: number;
+  direction: 'up' | 'down' | 'flat';
+  percentChange: number | null;
+  color: 'green' | 'red' | 'gray';
+};
+
+export function calculateWoWDelta(current: number | null, previous: number | null): WoWDelta | null {
+  if (current === null || previous === null || previous === 0) {
+    return null;
+  }
+  
+  const percentChange = ((current - previous) / Math.abs(previous)) * 100;
+  const direction = Math.abs(percentChange) < 1 ? 'flat' : percentChange > 0 ? 'up' : 'down';
+  const color = direction === 'up' ? 'green' : direction === 'down' ? 'red' : 'gray';
+  
+  return {
+    value: current - previous,
+    direction,
+    percentChange: Math.round(percentChange * 10) / 10, // Round to 1 decimal
+    color
+  };
+}
+
+/** Enhanced KPIs with WoW deltas */
+export function kpisWithDeltas(current: ReviewForStats[], previous: ReviewForStats[]) {
+  const currentKPIs = kpisFor(current);
+  const previousKPIs = kpisFor(previous);
+  
+  return {
+    avg: currentKPIs.avg,
+    avgDelta: calculateWoWDelta(currentKPIs.avg, previousKPIs.avg),
+    count: currentKPIs.count,
+    countDelta: calculateWoWDelta(currentKPIs.count, previousKPIs.count),
+    posPct: currentKPIs.posPct,
+    posPctDelta: calculateWoWDelta(currentKPIs.posPct, previousKPIs.posPct),
+  };
+}
