@@ -36,10 +36,28 @@ function Delta({ now, prev, goodHigher = true }: {
   now: number, prev: number, goodHigher?: boolean
 }) {
   const diff = now - prev;
-  const cls = diff === 0 ? "" : ((goodHigher ? diff > 0 : diff < 0) ? "up" : "down");
-  const sym = diff === 0 ? "•" : (cls === "up" ? "▲" : "▼");
-  const abs = Math.abs(diff);
-  return <span className={`delta ${cls}`}>{sym} {abs === 0 ? "0" : abs.toFixed(2)}</span>;
+  const percentChange = prev !== 0 ? Math.abs((diff / prev) * 100) : (diff !== 0 ? 100 : 0);
+  const direction = diff === 0 ? 'neutral' : (diff > 0 ? 'up' : 'down');
+  const isGood = diff === 0 ? true : ((goodHigher ? diff > 0 : diff < 0));
+  
+  const symbol = direction === 'up' ? '▲' : direction === 'down' ? '▼' : '▬';
+  const color = isGood ? '#16A34A' : '#DC2626'; // Green for good, red for bad
+  
+  return (
+    <span 
+      style={{ 
+        color: color, 
+        fontSize: '12px', 
+        fontWeight: '600',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '2px',
+        marginLeft: '6px'
+      }}
+    >
+      {symbol} {percentChange.toFixed(1)}%
+    </span>
+  );
 }
 
 async function getOptions() {
@@ -84,19 +102,19 @@ export default async function AnalyticsPage({ searchParams }: {
             <div className="kpi" role="group" aria-label="Reviews (30d)">
               <div className="label">Reviews (30d)</div>
               <div className="value">{count}</div>
-              <div className="delta up"><Delta now={wow.current.count} prev={wow.prev.count} goodHigher={true} /></div>
+              <div><Delta now={wow.current.count} prev={wow.prev.count} goodHigher={true} /></div>
             </div>
 
             <div className="kpi" role="group" aria-label="Average Rating (30d)">
               <div className="label">Average Rating (30d)</div>
               <div className="value">{avg.toFixed(2)}</div>
-              <div className="delta up"><Delta now={wow.current.avg} prev={wow.prev.avg} goodHigher={true} /></div>
+              <div><Delta now={wow.current.avg} prev={wow.prev.avg} goodHigher={true} /></div>
             </div>
 
             <div className="kpi" role="group" aria-label="% Positive ≥ 8 (30d)">
               <div className="label">% Positive ≥ 8 (30d)</div>
               <div className="value">{Math.round(positive * 100)}%</div>
-              <div className={`delta ${(wow.current.positive - wow.prev.positive) >= 0 ? "up" : "down"}`}>
+              <div>
                 <Delta now={wow.current.positive * 100} prev={wow.prev.positive * 100} goodHigher={true} />
               </div>
             </div>
@@ -104,7 +122,7 @@ export default async function AnalyticsPage({ searchParams }: {
             <div className="kpi" role="group" aria-label="% Approved (30d)">
               <div className="label">% Approved (30d)</div>
               <div className="value">{Math.round(approved * 100)}%</div>
-              <div className="delta up"><Delta now={wow.current.approved * 100} prev={wow.prev.approved * 100} goodHigher={true} /></div>
+              <div><Delta now={wow.current.approved * 100} prev={wow.prev.approved * 100} goodHigher={true} /></div>
             </div>
           </div>
 
