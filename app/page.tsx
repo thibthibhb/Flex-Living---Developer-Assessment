@@ -8,6 +8,7 @@ import ApprovalButton from "./ApprovalButton";
 import Navigation from "./(components)/Navigation";
 import ExpandableText from "./(components)/ExpandableText";
 import CategoryDisplay from "./(components)/CategoryDisplay";
+import FiltersBar from "../components/FiltersBar";
 import { kpisFor, countsByDay, movingAverage, cumulative, bucketCounts } from "../lib/stats"; 
 
 // --- tiny inline sparkline (pure SVG, no client JS needed) ---
@@ -111,7 +112,9 @@ const fmtDate = (d: Date) =>
 async function getData(searchParams: DashboardSearchParams) {
   // read query params
   const qProperty =
-    typeof searchParams.property === "string" ? searchParams.property : "";
+    typeof searchParams.property === "string" && searchParams.property !== "" && searchParams.property !== "all"
+      ? searchParams.property
+      : undefined;
   const qMinRating =
     typeof searchParams.minRating === "string" &&
     searchParams.minRating.trim() !== ""
@@ -128,7 +131,7 @@ async function getData(searchParams: DashboardSearchParams) {
       : "all";
   const qText = typeof searchParams.q === "string" ? searchParams.q : "";
   const qChannel =
-    typeof searchParams.channel === "string" && searchParams.channel !== ""
+    typeof searchParams.channel === "string" && searchParams.channel !== "" && searchParams.channel !== "all"
       ? searchParams.channel
       : undefined;
   const qStatus =
@@ -310,6 +313,16 @@ export default async function Dashboard({
   const { filters, reviews, k30, k90, trend30, trend90, topCategories } =
     await getData(sp);
 
+  // Create categories control
+  const categoriesControl = (
+    <select name="categories" multiple defaultValue={filters.qCategories} size={Math.min(4, Math.max(2, allCategories.length))} style={{ fontSize: '11px', minHeight: '60px' }}>
+      {allCategories.map((c) => (<option key={c} value={c}>{c}</option>))}
+    </select>
+  );
+
+  // Extract property names for FiltersBar
+  const propertyNames = properties.map(p => p.slug);
+
   function HiddenParams({ keep }: { keep: Record<string, string | string[] | number | undefined> }) {
     const entries: [string, string | string[] | number | undefined][] = Object.entries(keep);
     return (
@@ -332,148 +345,7 @@ export default async function Dashboard({
         <Navigation properties={properties} currentPath="/" />
       </div>
 
-      {/* Header */}
-      <header className="col-12" style={{ marginBottom: 12 }}>
-        <h1 style={{ margin: 0, fontSize: 28, letterSpacing: "-.01em" }}>
-          Reviews Dashboard
-        </h1>
-        <p style={{ margin: "8px 0 0", color: "var(--muted)", fontSize: "16px" }}>
-          Manage, filter, and approve reviews with enterprise-grade security
-        </p>
-      </header>
 
-      {/* Toolbar */}
-      <section className="col-12 card" style={{ marginBottom: 16 }}>
-        <form className="toolbar" role="search" aria-label="Filter reviews">
-          <div className="field" style={{ gridColumn: "span 3" }}>
-            <label htmlFor="property-select">Property</label>
-            <select id="property-select" className="select" name="property" defaultValue={filters.qProperty || ""}>
-              <option value="">All</option>
-              {properties.map((p) => (
-                <option key={p.id} value={p.slug}>{p.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="field" style={{ gridColumn: "span 2" }}>
-            <label htmlFor="min-rating">Min rating</label>
-            <input id="min-rating" className="input" name="minRating" type="number" step="0.1" min="0" max="10" defaultValue={filters.qMinRating ?? ""}/>
-          </div>
-
-          <div className="field" style={{ gridColumn: "span 3" }}>
-            <label htmlFor="search-text">Search text</label>
-            <input id="search-text" className="input" name="q" placeholder="Find keyword..." defaultValue={filters.qText || ""}/>
-          </div>
-
-          <div className="field" style={{ gridColumn: "span 2" }}>
-            <label htmlFor="channel-select">Channel</label>
-            <select id="channel-select" className="select" name="channel" defaultValue={filters.qChannel || ""}>
-              <option value="">All</option>
-              {allChannels.map((c) => (<option key={c} value={c}>{c}</option>))}
-            </select>
-          </div>
-
-          <div className="field" style={{ gridColumn: "span 2" }}>
-            <label htmlFor="status-select">Status</label>
-            <select id="status-select" className="select" name="status" defaultValue={filters.qStatus || "published"}>
-              <option value="published">Published</option>
-              <option value="removed">Removed</option>
-              <option value="all">All</option>
-            </select>
-          </div>
-
-          <div className="field" style={{ gridColumn: "span 3" }}>
-            <label htmlFor="categories-select">Categories</label>
-            <select id="categories-select" className="select" name="categories" multiple defaultValue={filters.qCategories} size={Math.min(6, Math.max(3, allCategories.length))} aria-describedby="categories-help">
-              {allCategories.map((c) => (<option key={c} value={c}>{c}</option>))}
-            </select>
-            <div id="categories-help" className="sr-only">Hold Ctrl/Cmd to select multiple categories</div>
-          </div>
-
-          <div className="field" style={{ gridColumn: "span 2" }}>
-            <label htmlFor="date-from">From</label>
-            <input id="date-from" className="input" type="date" name="from" defaultValue={filters.qFromStr || ""}/>
-          </div>
-
-          <div className="field" style={{ gridColumn: "span 2" }}>
-            <label htmlFor="date-to">To</label>
-            <input id="date-to" className="input" type="date" name="to" defaultValue={filters.qToStr || ""}/>
-          </div>
-
-          <div className="field" style={{ gridColumn: "span 2" }}>
-            <label htmlFor="sort-select">Sort</label>
-            <select id="sort-select" className="select" name="sort" defaultValue={filters.qSort}>
-              <option value="date_desc">Date (new → old)</option>
-              <option value="date_asc">Date (old → new)</option>
-              <option value="rating_desc">Rating (high → low)</option>
-              <option value="rating_asc">Rating (low → high)</option>
-              <option value="attention">⚠️ Needs attention</option>
-            </select>
-          </div>
-
-          <div className="actions" style={{ gridColumn: "span 2", alignItems:"end" }}>
-            <button className="btn primary" type="submit" aria-label="Apply filters">Apply</button>
-            <a className="btn ghost" href="/" aria-label="Reset all filters">Reset</a>
-          </div>
-        </form>
-        
-        {/* Active filters chips */}
-        {(filters.qProperty || filters.qMinRating != null || filters.qText || filters.qChannel || (filters.qStatus && filters.qStatus !== "published") || filters.qFromStr || filters.qToStr || filters.qCategories.length > 0) && (
-          <div style={{ marginTop: 16 }}>
-            <div style={{ marginBottom: 8, fontSize: 14, color: 'var(--muted)' }}>Active filters:</div>
-            <div className="pills" aria-live="polite">
-              {filters.qProperty && (
-                <Link href="/" className="pill" style={{ textDecoration: 'none', color: 'var(--text)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  Property: {properties.find(p => p.slug === filters.qProperty)?.name || filters.qProperty} 
-                  <span aria-hidden="true" style={{ marginLeft: '4px', fontWeight: 'bold' }}>×</span>
-                </Link>
-              )}
-              {filters.qMinRating != null && (
-                <Link href="/" className="pill" style={{ textDecoration: 'none', color: 'var(--text)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  Min rating: {filters.qMinRating} 
-                  <span aria-hidden="true" style={{ marginLeft: '4px', fontWeight: 'bold' }}>×</span>
-                </Link>
-              )}
-              {filters.qText && (
-                <Link href="/" className="pill" style={{ textDecoration: 'none', color: 'var(--text)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  Text: "{filters.qText}" 
-                  <span aria-hidden="true" style={{ marginLeft: '4px', fontWeight: 'bold' }}>×</span>
-                </Link>
-              )}
-              {filters.qChannel && (
-                <Link href="/" className="pill" style={{ textDecoration: 'none', color: 'var(--text)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  Channel: {filters.qChannel} 
-                  <span aria-hidden="true" style={{ marginLeft: '4px', fontWeight: 'bold' }}>×</span>
-                </Link>
-              )}
-              {filters.qStatus && filters.qStatus !== "published" && (
-                <Link href="/" className="pill" style={{ textDecoration: 'none', color: 'var(--text)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  Status: {filters.qStatus} 
-                  <span aria-hidden="true" style={{ marginLeft: '4px', fontWeight: 'bold' }}>×</span>
-                </Link>
-              )}
-              {filters.qFromStr && (
-                <Link href="/" className="pill" style={{ textDecoration: 'none', color: 'var(--text)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  From: {filters.qFromStr} 
-                  <span aria-hidden="true" style={{ marginLeft: '4px', fontWeight: 'bold' }}>×</span>
-                </Link>
-              )}
-              {filters.qToStr && (
-                <Link href="/" className="pill" style={{ textDecoration: 'none', color: 'var(--text)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  To: {filters.qToStr} 
-                  <span aria-hidden="true" style={{ marginLeft: '4px', fontWeight: 'bold' }}>×</span>
-                </Link>
-              )}
-              {filters.qCategories.map(category => (
-                <Link key={category} href="/" className="pill" style={{ textDecoration: 'none', color: 'var(--text)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  Category: {category} 
-                  <span aria-hidden="true" style={{ marginLeft: '4px', fontWeight: 'bold' }}>×</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-      </section>
 
       {/* KPIs */}
       <section className="col-12" style={{ marginBottom: 8 }}>
@@ -570,9 +442,42 @@ export default async function Dashboard({
         </div>
       </section>
 
-      {/* Reviews table */}
-      <section className="col-12 card">
-        <h2 style={{ marginTop: 0 }}>Reviews</h2>
+      <section id="reviews" style={{ marginTop: 8 }}>
+        <header style={{ marginBottom: 8 }}>
+          <h1>Reviews Dashboard</h1>
+          <p className="muted">Manage, filter, and approve reviews with enterprise-grade security</p>
+        </header>
+
+        {/* FiltersBar renders here — directly above the table */}
+        <FiltersBar
+          filters={{
+            qProperty: filters.qProperty ?? "all",
+            qText: filters.qText ?? null,
+            qChannel: filters.qChannel ?? "all",
+            qStatus: filters.qStatus ?? "published",
+            qApproved: filters.qApproved ?? "all",
+            qMinRating: filters.qMinRating ?? null,
+            qMaxRating: filters.qMaxRating ?? null,
+            qFromStr: filters.qFromStr ?? null,
+            qToStr: filters.qToStr ?? null,
+          }}
+          categoriesControl={categoriesControl}
+          hiddenParams={
+            <>
+              {/* preserve sort/dir/page if your data loader uses them */}
+              {filters.qSort ? <input type="hidden" name="sort" value={filters.qSort} /> : null}
+              {filters.qTrend ? <input type="hidden" name="trend" value={filters.qTrend} /> : null}
+              {/* keep more=1 if present so the expanded state persists after Apply */}
+              {sp?.more === "1" ? <input type="hidden" name="more" value="1" /> : null}
+            </>
+          }
+          showMoreDefault={sp?.more === "1"}
+          resetHref="/"
+          propertyOptions={propertyNames}
+          channelOptions={allChannels.length ? ["all", ...allChannels] : ["all", "airbnb", "booking", "vrbo", "direct"]}
+        />
+
+        {/* Reviews table goes immediately below */}
 
         {reviews.length === 0 ? (
           <div className="muted" style={{ padding: "16px 0" }}>
@@ -606,7 +511,7 @@ export default async function Dashboard({
                   <th scope="col">Actions</th>
                 </tr>
                 
-                {/* Row 2: Filters and controls */}
+                {/* Row 2: Sort arrows only */}
                 <tr style={{ borderTop: '1px solid var(--border)' }}>
                   {/* DATE: sort buttons */}
                   <th>
@@ -627,90 +532,25 @@ export default async function Dashboard({
                   <th></th>
                   <th></th>
 
-                  {/* RATING: range inputs + sort */}
+                  {/* RATING: sort buttons only */}
                   <th>
-                    <div className="th-mini" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <form method="GET" style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                        <HiddenParams keep={{ ...filters, minRating: undefined, maxRating: undefined }} />
-                        <input
-                          name="minRating"
-                          type="number"
-                          step="0.1"
-                          min="0"
-                          max="10"
-                          placeholder="min"
-                          style={{ width: '40px', fontSize: '10px' }}
-                          defaultValue={filters.qMinRating ?? ""}
-                        />
-                        <input
-                          name="maxRating"
-                          type="number"
-                          step="0.1"
-                          min="0"
-                          max="10"
-                          placeholder="max"
-                          style={{ width: '40px', fontSize: '10px' }}
-                          defaultValue={(filters as any).qMaxRating ?? ""}
-                        />
-                        <button type="submit" className="btn ghost" style={{ padding: '2px 6px', fontSize: '10px' }}>
-                          Apply
-                        </button>
+                    <div className="th-mini" style={{ display: 'flex', gap: '2px' }}>
+                      <form method="GET">
+                        <HiddenParams keep={{ ...filters, sort: undefined }} />
+                        <input type="hidden" name="sort" value="rating_desc" />
+                        <button className="icon-btn" aria-label="Sort rating high→low"><span>▼</span></button>
                       </form>
-                      <div style={{ display: 'flex', gap: '2px' }}>
-                        <form method="GET">
-                          <HiddenParams keep={{ ...filters, sort: undefined }} />
-                          <input type="hidden" name="sort" value="rating_desc" />
-                          <button className="icon-btn" aria-label="Sort rating high→low"><span>▼</span></button>
-                        </form>
-                        <form method="GET">
-                          <HiddenParams keep={{ ...filters, sort: undefined }} />
-                          <input type="hidden" name="sort" value="rating_asc" />
-                          <button className="icon-btn" aria-label="Sort rating low→high"><span>▲</span></button>
-                        </form>
-                      </div>
+                      <form method="GET">
+                        <HiddenParams keep={{ ...filters, sort: undefined }} />
+                        <input type="hidden" name="sort" value="rating_asc" />
+                        <button className="icon-btn" aria-label="Sort rating low→high"><span>▲</span></button>
+                      </form>
                     </div>
                   </th>
 
                   <th></th>
-
-                  {/* STATUS: select */}
-                  <th>
-                    <form method="GET" className="th-mini" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                      <HiddenParams keep={{ ...filters, status: undefined }} />
-                      <select
-                        name="status"
-                        defaultValue={(filters as any).qStatus ?? "published"}
-                        style={{ fontSize: '10px' }}
-                      >
-                        <option value="published">Published</option>
-                        <option value="removed">Removed</option>
-                        <option value="all">All</option>
-                      </select>
-                      <button type="submit" className="btn ghost" style={{ padding: '2px 6px', fontSize: '10px' }}>
-                        Apply
-                      </button>
-                    </form>
-                  </th>
-
-                  {/* APPROVED: select */}
-                  <th>
-                    <form method="GET" className="th-mini" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                      <HiddenParams keep={{ ...filters, approved: undefined }} />
-                      <select
-                        name="approved"
-                        defaultValue={(filters as any).qApproved ?? "all"}
-                        style={{ fontSize: '10px' }}
-                      >
-                        <option value="all">All</option>
-                        <option value="true">Yes</option>
-                        <option value="false">No</option>
-                      </select>
-                      <button type="submit" className="btn ghost" style={{ padding: '2px 6px', fontSize: '10px' }}>
-                        Apply
-                      </button>
-                    </form>
-                  </th>
-
+                  <th></th>
+                  <th></th>
                   <th></th>
                 </tr>
               </thead>
