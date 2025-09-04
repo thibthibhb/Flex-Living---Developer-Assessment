@@ -54,15 +54,15 @@ export async function GET(request: Request) {
     // Filter mock data based on query parameters
     let filteredReviews = normalized;
     if (listingId) {
-      filteredReviews = normalized.filter(review => review.listingId === listingId);
+      filteredReviews = normalized.filter(review => review.property.name === listingId || review.property.slug === listingId);
     }
     if (from) {
       const fromDate = new Date(from);
-      filteredReviews = filteredReviews.filter(review => new Date(review.date) >= fromDate);
+      filteredReviews = filteredReviews.filter(review => new Date(review.submitted_at) >= fromDate);
     }
     if (to) {
       const toDate = new Date(to);
-      filteredReviews = filteredReviews.filter(review => new Date(review.date) <= toDate);
+      filteredReviews = filteredReviews.filter(review => new Date(review.submitted_at) <= toDate);
     }
     if (channel) {
       filteredReviews = filteredReviews.filter(review => review.channel === channel);
@@ -144,8 +144,7 @@ async function fetchFromHostawayAPI(params: {
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
           'X-Hostaway-Account-Id': accountId
-        },
-        timeout: 10000 // 10 second timeout
+        }
       });
 
       if (response.status === 404) {
